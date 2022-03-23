@@ -1,0 +1,8 @@
+.logo path{
+    transform: scale(1.45);
+    fill: var(--color-purple);
+}
+.logo:hover path{
+    fill: white;
+    transition: .45s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
