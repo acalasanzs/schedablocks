@@ -8,11 +8,10 @@ const SideBar = () => {
                     
         <SideBarIcon icon={<Logo />} text="a Random logo 🤣" />
         <Divider />
-        <SideBarIcon icon={<BsPlus size="32" />} />
-        <SideBarIcon icon={<BsFillLightningFill size="20" />} />
+        <SideBarIcon icon={<BsPlus size="32" />} text="New 💗" />
         <Divider />
-        <SideBarIcon icon={<BsGearFill size="22" />} />
-        <SideBarIcon icon={<BiHomeCircle size="22" />} />
+        <SideBarIcon icon={<BsGearFill size="22" />} text="Settings" />
+        <SideBarIcon icon={<BiHomeCircle size="22" />} text="Home" />
     </div>
   );
 };
