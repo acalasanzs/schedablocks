@@ -36,7 +36,9 @@ class Game extends Component {
     renderer.setClearColor("#a29bfe")
     renderer.setSize(game.current.clientWidth, game.current.clientHeight);
 
-    window.addEventListener('resize', this.resize)
+    window.addEventListener('resize', _=>{setTimeout(() => {
+      this.resize();
+    }, 300)})
     this.animate()
     return renderer.domElement;
   }
