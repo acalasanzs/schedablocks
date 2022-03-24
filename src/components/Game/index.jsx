@@ -1,191 +1,53 @@
 import {React, useEffect} from 'react'
 import { createRef } from 'react/cjs/react.production.min';
+import * as THREE from 'three';
 
-const Game = () => {
-    var joc = createRef();
-    useEffect(() => {
-        joc = joc.current
-        joc.height = window.innerHeight;
-        joc.width = window.innerWidth;
-        const context = joc.getContext('2d');
-        const grid = 15;
-        const paddleHeight = grid * 5; // 80
-        const maxPaddleY = joc.height - grid - paddleHeight;
+let scene, camera, renderer, cube;
 
-        var paddleSpeed = 6;
-        var ballSpeed = 5;
+function init () {
+//creating scene
+scene = new THREE.Scene();
+scene.background = new THREE.Color(0x2a3b4c);
 
-        const leftPaddle = {
-          // start in the middle of the game on the left side
-          x: grid * 2,
-          y: joc.height / 2 - paddleHeight / 2,
-          width: grid,
-          height: paddleHeight,
+//add camera
+camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth/window.innerHeight
+);
 
-          // paddle velocity
-          dy: 0
-        };
-        const rightPaddle = {
-          // start in the middle of the game on the right side
-          x: joc.width - grid * 3,
-          y: joc.height / 2 - paddleHeight / 2,
-          width: grid,
-          height: paddleHeight,
+//renderer
+renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-          // paddle velocity
-          dy: 0
-        };
-        const ball = {
-          // start in the middle of the game
-          x: joc.width / 2,
-          y: joc.height / 2,
-          width: grid,
-          height: grid,
+//add geometry
+var geometry = new THREE.BoxGeometry();
+var material = new THREE.MeshBasicMaterial({color: 0x00ff00, wireframe: true});
+cube = new THREE.Mesh(geometry, material);
 
-          // keep track of when need to reset the ball position
-          resetting: false,
+scene.add(cube);
 
-          // ball velocity (start going to the top-right corner)
-          dx: ballSpeed,
-          dy: -ballSpeed
-        };
+camera.position.z = 5;
 
-        // check for collision between two objects using axis-aligned bounding box (AABB)
-        // @see https://developer.mozilla.org/en-US/docs/Games/Techniques/2D_collision_detection
-        function collides(obj1, obj2) {
-          return obj1.x < obj2.x + obj2.width &&
-                obj1.x + obj1.width > obj2.x &&
-                obj1.y < obj2.y + obj2.height &&
-                obj1.y + obj1.height > obj2.y;
-        }
 
-        // game loop
-        function loop() {
-          requestAnimationFrame(loop);
-          context.clearRect(0,0,joc.width,joc.height);
+animate();
 
-          // move paddles by their velocity
-          leftPaddle.y += leftPaddle.dy;
-          rightPaddle.y += rightPaddle.dy;
+}
 
-          // prevent paddles from going through walls
-          if (leftPaddle.y < grid) {
-            leftPaddle.y = grid;
-          }
-          else if (leftPaddle.y > maxPaddleY) {
-            leftPaddle.y = maxPaddleY;
-          }
+//animation
+function animate(){
+  requestAnimationFrame(animate);
 
-          if (rightPaddle.y < grid) {
-            rightPaddle.y = grid;
-          }
-          else if (rightPaddle.y > maxPaddleY) {
-            rightPaddle.y = maxPaddleY;
-          }
+  cube.rotation.x += 0.01;
+  cube.rotation.y += 0.01;
 
-          // draw paddles
-          context.fillStyle = 'white';
-          context.fillRect(leftPaddle.x, leftPaddle.y, leftPaddle.width, leftPaddle.height);
-          context.fillRect(rightPaddle.x, rightPaddle.y, rightPaddle.width, rightPaddle.height);
+  renderer.render(scene, camera);
+}
 
-          // move ball by its velocity
-          ball.x += ball.dx;
-          ball.y += ball.dy;
-
-          // prevent ball from going through walls by changing its velocity
-          if (ball.y < grid) {
-            ball.y = grid;
-            ball.dy *= -1;
-          }
-          else if (ball.y + grid > joc.height - grid) {
-            ball.y = joc.height - grid * 2;
-            ball.dy *= -1;
-          }
-
-          // reset ball if it goes past paddle (but only if we haven't already done so)
-          if ( (ball.x < 0 || ball.x > joc.width) && !ball.resetting) {
-            ball.resetting = true;
-
-            // give some time for the player to recover before launching the ball again
-            setTimeout(() => {
-              ball.resetting = false;
-              ball.x = joc.width / 2;
-              ball.y = joc.height / 2;
-            }, 400);
-          }
-
-          // check to see if ball collides with paddle. if they do change x velocity
-          if (collides(ball, leftPaddle)) {
-            ball.dx *= -1;
-
-            // move ball next to the paddle otherwise the collision will happen again
-            // in the next frame
-            ball.x = leftPaddle.x + leftPaddle.width;
-          }
-          else if (collides(ball, rightPaddle)) {
-            ball.dx *= -1;
-
-            // move ball next to the paddle otherwise the collision will happen again
-            // in the next frame
-            ball.x = rightPaddle.x - ball.width;
-          }
-
-          // draw ball
-          context.fillRect(ball.x, ball.y, ball.width, ball.height);
-
-          // draw walls
-          context.fillStyle = 'lightgrey';
-          context.fillRect(0, 0, joc.width, grid);
-          context.fillRect(0, joc.height - grid, joc.width, joc.height);
-
-          // draw dotted line down the middle
-          for (let i = grid; i < joc.height - grid; i += grid * 2) {
-            context.fillRect(joc.width / 2 - grid / 2, i, grid, grid);
-          }
-        }
-
-        // listen to keyboard events to move the paddles
-        function keydown(e) {
-
-          // up arrow keyCode
-          if (e.keyCode === 38) {
-            rightPaddle.dy = -paddleSpeed;
-          }
-          // down arrow keyCode
-          else if (e.keyCode === 40) {
-            rightPaddle.dy = paddleSpeed;
-          }
-
-          // w keyCode
-          if (e.keyCode === 87) {
-            leftPaddle.dy = -paddleSpeed;
-          }
-          // a keyCode
-          else if (e.keyCode === 83) {
-            leftPaddle.dy = paddleSpeed;
-          }
-        };
-
-        // listen to keyboard events to stop the paddle if keyCode is released
-        function keyup (e) {
-          if (e.keyCode === 38 || e.keyCode === 40) {
-            rightPaddle.dy = 0;
-          }
-
-          if (e.keyCode === 83 || e.keyCode === 87) {
-            leftPaddle.dy = 0;
-          }
-        };
-
-        // start the game
-        requestAnimationFrame(loop);
-        window.addEventListener("keydown",keydown)
-        window.addEventListener("keyup",keyup)
-    },)
-    
+const Game = () => {    
     return (
         <div className='content-container'>
-          <canvas ref={joc}/>
+          {init()}
         </div>
       );
 }
