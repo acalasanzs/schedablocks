@@ -47,9 +47,7 @@ html{
   }
   .content-container{
     @apply w-full h-screen ml-[64px];
-  }
-  canvas{
-    @apply w-full h-full bg-gray-600 hover:bg-gray-700 transition-all;
+    width: calc(100% - 64px);
   }
 }
 
