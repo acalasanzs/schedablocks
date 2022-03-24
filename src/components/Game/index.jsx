@@ -37,7 +37,7 @@ class Game extends Component {
     })
 
 
-    var geometry = new THREE.SphereGeometry(1, 10, 10);
+    var geometry = new THREE.BoxGeometry(1, 1, 1);
     var material = new THREE.MeshLambertMaterial({color: 0xFFCC00})
     var mesh = new THREE.Mesh(geometry, material);
 
@@ -54,7 +54,8 @@ class Game extends Component {
 
   //animation
   animate(){
-    renderer.render(scene,camera)
+    requestAnimationFrame(this.animate);
+    renderer.render(scene,camera);
   }
   componentDidMount() {
     game.current.appendChild(this.init());
