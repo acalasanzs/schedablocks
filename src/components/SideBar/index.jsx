@@ -1,10 +1,12 @@
-import { BsPlus, BsFillLightningFill, BsGearFill } from 'react-icons/bs';
+import { BsPlus, BsGearFill } from 'react-icons/bs';
+import {  createRef } from 'react';
 import {BiHomeCircle} from 'react-icons/bi'
 import './style.css';
+let sidebar = createRef()
 const SideBar = () => {
   return (
     <div className="fixed top-0 left-0 h-screen w-16 flex flex-col
-                  bg-white dark:bg-gray-900 shadow-lg">
+                  bg-white dark:bg-gray-900 shadow-lg" ref={sidebar} id="sidebar">
                     
         <SideBarIcon icon={<Logo />} text="a Random logo 🤣" />
         <Divider />
@@ -31,5 +33,6 @@ const Logo = () => (
 
 
 const Divider = () => <hr className="sidebar-hr" />;
+
 
 export default SideBar;

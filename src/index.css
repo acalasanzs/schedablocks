@@ -46,8 +46,18 @@ html{
     mx-2;
   }
   .content-container{
-    @apply w-full h-screen ml-[64px];
-    width: calc(100% - 64px);
+    @apply w-full h-screen absolute;
+    left: 16px;
+    width: calc(100% - 16px);
+    transition: all .145s cubic-bezier(.17,.67,.14,.18);
+  }
+  #sidebar{
+    z-index: 99999999999999999999999999999999999999999999999;
+    transform: translateX(-48px);
+    transition: all .145s cubic-bezier(.17,.67,.14,.18);
+  }
+  #sidebar:hover{
+    transform: translateX(0);
   }
 }
 

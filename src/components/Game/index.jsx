@@ -1,10 +1,12 @@
-import React, {useEffect, Component} from 'react'
+import React, {Component} from 'react'
 import { createRef } from 'react/cjs/react.production.min';
 import * as THREE from 'three';
 import * as GSAP from 'gsap';
 
 let scene, camera, renderer, cube;
+
 let game = createRef();
+
 class Game extends Component {
 
   constructor(props) {
@@ -30,17 +32,13 @@ class Game extends Component {
     renderer.setClearColor("#a29bfe")
     renderer.setSize(game.current.clientWidth, game.current.clientHeight);
 
-    window.addEventListener('resize', () => {
-      renderer.setSize(game.current.clientWidth, game.current.clientHeight);
-      camera.aspect = game.current.clientWidth/game.current.clientHeight;
-      camera.updateProjectionMatrix()
-    })
+    window.addEventListener('resize', this.resize)
 
 
     var geometry = new THREE.BoxGeometry(1, 1, 1);
     var material = new THREE.MeshLambertMaterial({color: 0xFFCC00})
     var mesh = new THREE.Mesh(geometry, material);
-
+    mesh.position.x = 2
     scene.add(mesh)
 
     var light = new THREE.PointLight(0xFFFFFF, 1, 500);
@@ -50,6 +48,11 @@ class Game extends Component {
     this.animate()
     return renderer.domElement;
 
+  }
+  resize() {
+    renderer.setSize(game.current.clientWidth, game.current.clientHeight);
+    camera.aspect = game.current.clientWidth/game.current.clientHeight;
+    camera.updateProjectionMatrix()
   }
 
   //animation
