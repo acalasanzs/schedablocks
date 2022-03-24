@@ -56,6 +56,26 @@ html{
     transform: translateX(-48px);
     transition: all .145s cubic-bezier(.17,.67,.14,.18);
   }
+  #sidebar:before,
+  #sidebar:after {
+    width: 20px;
+    height: 35px;
+    position: absolute;
+    left: 100%;
+    content: "";
+    cursor: pointer;
+    filter: drop-shadow(0 0 0.75rem var(--color-fantastic-purple));;
+  }
+  #sidebar:before{
+    top: 50%;
+    transform: translateY(-50%);
+    background: linear-gradient(to right top, #888 50%, transparent 50%)
+  }
+  #sidebar:after {
+    top: calc(50% + 35px);
+    transform: translateY(-50%);
+    background: linear-gradient(to right bottom, #888 50%, transparent 50%)
+  }
   #sidebar:hover{
     transform: translateX(0);
   }

@@ -8,19 +8,32 @@ let sidebar = createRef();
 const SideBar = () => {
   useEffect(() => {
     let children = document.getElementsByClassName("sidebar-icon");
-    [...children].forEach(reference =>{
-      reference.addEventListener("click",e=>{
+    [...children].forEach((reference, i = 0) =>{
+      reference.i = i;
+      reference.addEventListener("click",(e)=>{
         e.preventDefault()
-        var duration = .5;
-        var tl = gsap.timeline({onanimationend: _=>{
-
+        var duration = .1;
+        var tl = gsap.timeline({onComplete: _=>{
+          reference.style.background = "";
+          reference.querySelector("path").style.fill = "";
         }})
-        reference.style.background = "#000";
+        reference.style.background = "var(--color-fantastic-blue)";
+        reference.querySelector("path").style.fill = "#fff";
         tl.to(reference, duration/4, {scale: 1.2, ease: Expo.easeIn})
         tl.to(reference, duration/2, {scale: 1, ease: Expo.easeOut, delay: duration})
-        
-      })
-    })
+        switch (reference.i) {
+          case 0:
+            break;
+          case 1:
+            break;
+          case 2:
+            break;
+          default:
+            break;
+        }
+      });
+      i++;
+    });
   
     return () => {
       
