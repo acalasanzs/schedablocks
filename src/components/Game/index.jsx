@@ -1,8 +1,14 @@
 import React, {Component} from 'react'
 import { createRef } from 'react/cjs/react.production.min';
 import * as THREE from 'three';
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import * as GSAP from 'gsap';
-
+import up from '../../images/menu/up.png'
+import right from '../../images/menu/right.png'
+import left from '../../images/menu/left.png'
+import front from '../../images/menu/front.png'
+import down from '../../images/menu/down.png'
+import back from '../../images/menu/back.png'
 let scene, camera, renderer;
 
 let game = createRef();
@@ -17,7 +23,7 @@ class Game extends Component {
     this.tl = undefined;
     this.raycaster = undefined;
 
-    class FirstPersonControls {
+    /*class FirstPersonControls {
       constructor(camera, MouseMoveSensitivity = 0.002, speed = 800.0, jumpHeight = 350.0, height = 30.0) {
         var scope = this;
 
@@ -211,7 +217,7 @@ class Game extends Component {
           prevTime = time;
         };
       }
-    }
+    }*/
   }
 
   init () {
@@ -220,21 +226,50 @@ class Game extends Component {
 
     //add camera
     camera = new THREE.PerspectiveCamera(
-        75,
+        55,
         game.current.clientWidth/game.current.clientHeight,
-        0.1,
-        1000
+        45,
+        30000
     );
     camera.position.z = 5;
 
     //renderer
     renderer = new THREE.WebGLRenderer({antialias: true});
-    renderer.setClearColor("#a29bfe")
+    //renderer.setClearColor("#a29bfe")
     renderer.setSize(game.current.clientWidth, game.current.clientHeight);
 
     window.addEventListener('resize', _=>{setTimeout(() => {
       this.resize();
     }, 300)})
+
+    let controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.25;
+    controls.enableZoom = true;
+
+    controls.enablePan = true;
+    controls.addEventListener("change",renderer)
+
+    let materialArray = [];
+    let texture_ft = new THREE.TextureLoader().load(front);
+    let texture_bk = new THREE.TextureLoader().load(back);
+    let texture_up = new THREE.TextureLoader().load(up);
+    let texture_dn = new THREE.TextureLoader().load(down);
+    let texture_rt = new THREE.TextureLoader().load(right);
+    let texture_lf = new THREE.TextureLoader().load(left);
+
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture_ft}));
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture_bk}));
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture_up}));
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture_dn}));
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture_rt}));
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture_lf}));
+    for (let i=0;i<6;i++){
+      materialArray[i].side = THREE.BackSide
+    }
+    let skyboxGeo = new THREE.BoxGeometry(10000,10000,10000);
+    let skybox = new THREE.Mesh(skyboxGeo, materialArray);
+    scene.add(skybox)
     this.animate()
     return renderer.domElement;
   }
