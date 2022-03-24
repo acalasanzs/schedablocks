@@ -5,7 +5,7 @@ import './style.css';
 import { gsap, Expo } from "gsap";
 let sidebar = createRef();
 
-const SideBar = () => {
+const SideBar = ({game}) => {
   useEffect(() => {
     let children = document.getElementsByClassName("sidebar-icon");
     [...children].forEach((reference, i = 0) =>{
@@ -25,6 +25,7 @@ const SideBar = () => {
           case 0:
             break;
           case 1:
+            game.current.new()
             break;
           case 2:
             break;
@@ -34,11 +35,7 @@ const SideBar = () => {
       });
       i++;
     });
-  
-    return () => {
-      
-    }
-  }, [])
+  })
   
   
   return (

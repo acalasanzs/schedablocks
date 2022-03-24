@@ -1,11 +1,13 @@
+import { createRef } from 'react';
 import Game from './components/Game';
 import SideBar from './components/SideBar';
 
 function App() {
+  const game = createRef()
   return (
     <div className="flex">
-      <SideBar />
-      <Game />
+      <SideBar game={game}/>
+      <Game ref={game} />
     </div>
   );
 }

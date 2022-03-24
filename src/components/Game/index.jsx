@@ -12,6 +12,7 @@ class Game extends Component {
   constructor(props) {
     super(props)
     this.animate = this.animate.bind(this)
+    this.animation = this.animation.bind(this)
     this.mesh = undefined;
     this.tl = undefined;
     this.raycaster = undefined;
@@ -36,8 +37,15 @@ class Game extends Component {
     renderer.setSize(game.current.clientWidth, game.current.clientHeight);
 
     window.addEventListener('resize', this.resize)
-
-
+    this.animate()
+    return renderer.domElement;
+  }
+  resize() {
+    renderer.setSize(game.current.clientWidth, game.current.clientHeight);
+    camera.aspect = game.current.clientWidth/game.current.clientHeight;
+    camera.updateProjectionMatrix()
+  }
+  new () {
     var geometry = new THREE.BoxGeometry(1, 1, 1);
     var material = new THREE.MeshLambertMaterial({color: 0xFFCC00})
     this.mesh = new THREE.Mesh(geometry, material);
@@ -47,18 +55,16 @@ class Game extends Component {
     var light = new THREE.PointLight(0xFFFFFF, 1, 500);
     light.position.set(10,0,25);
     scene.add(light)
-
-    this.animate()
-    return renderer.domElement;
-
-
+    this.animation()
   }
-  resize() {
-    renderer.setSize(game.current.clientWidth, game.current.clientHeight);
-    camera.aspect = game.current.clientWidth/game.current.clientHeight;
-    camera.updateProjectionMatrix()
+  animation() {
+    this.tl = new GSAP.TimelineMax();
+    this.tl.to(this.mesh.scale, 1, {x: 2, ease: GSAP.Expo.easeOut})
+    this.tl.to(this.mesh.scale, .5, {z: .5, ease: GSAP.Expo.easeOut})
+    this.tl.to(this.mesh.position, .5, {x: 2, ease: GSAP.Expo.easeOut})
+    this.tl.to(this.mesh.rotation, .5, {y: Math.PI*.5, ease: GSAP.Expo.easeOut}, "=-1.5")
+    this.animate();
   }
-
   //animation
   animate(){
     requestAnimationFrame(this.animate);    
@@ -67,12 +73,7 @@ class Game extends Component {
   }
   componentDidMount() {
     game.current.appendChild(this.init());
-    this.tl = new GSAP.TimelineMax();
-    this.tl.to(this.mesh.scale, 1, {x: 2, ease: GSAP.Expo.easeOut})
-    this.tl.to(this.mesh.scale, .5, {z: .5, ease: GSAP.Expo.easeOut})
-    this.tl.to(this.mesh.position, .5, {x: 2, ease: GSAP.Expo.easeOut})
-    this.tl.to(this.mesh.rotation, .5, {y: Math.PI*.5, ease: GSAP.Expo.easeOut}, "=-1.5")
-    this.animate();
+    this.resize()
   }
 
   render() {    
