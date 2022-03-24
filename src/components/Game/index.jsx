@@ -3,7 +3,7 @@ import { createRef } from 'react/cjs/react.production.min';
 import * as THREE from 'three';
 import * as GSAP from 'gsap';
 
-let scene, camera, renderer, cube;
+let scene, camera, renderer;
 
 let game = createRef();
 
@@ -12,6 +12,9 @@ class Game extends Component {
   constructor(props) {
     super(props)
     this.animate = this.animate.bind(this)
+    this.mesh = undefined;
+    this.tl = undefined;
+    this.raycaster = undefined;
   }
 
   init () {
@@ -37,9 +40,9 @@ class Game extends Component {
 
     var geometry = new THREE.BoxGeometry(1, 1, 1);
     var material = new THREE.MeshLambertMaterial({color: 0xFFCC00})
-    var mesh = new THREE.Mesh(geometry, material);
-    mesh.position.x = 2
-    scene.add(mesh)
+    this.mesh = new THREE.Mesh(geometry, material);
+
+    scene.add(this.mesh)
 
     var light = new THREE.PointLight(0xFFFFFF, 1, 500);
     light.position.set(10,0,25);
@@ -47,6 +50,7 @@ class Game extends Component {
 
     this.animate()
     return renderer.domElement;
+
 
   }
   resize() {
@@ -57,11 +61,17 @@ class Game extends Component {
 
   //animation
   animate(){
-    requestAnimationFrame(this.animate);
+    requestAnimationFrame(this.animate);    
+    
     renderer.render(scene,camera);
   }
   componentDidMount() {
     game.current.appendChild(this.init());
+    this.tl = new GSAP.TimelineMax();
+    this.tl.to(this.mesh.scale, 1, {x: 2, ease: GSAP.Expo.easeOut})
+    this.tl.to(this.mesh.scale, .5, {z: .5, ease: GSAP.Expo.easeOut})
+    this.tl.to(this.mesh.position, .5, {x: 2, ease: GSAP.Expo.easeOut})
+    this.tl.to(this.mesh.rotation, .5, {y: Math.PI*.5, ease: GSAP.Expo.easeOut}, "=-1.5")
     this.animate();
   }
 

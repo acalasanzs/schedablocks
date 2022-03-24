@@ -1,9 +1,33 @@
 import { BsPlus, BsGearFill } from 'react-icons/bs';
-import {  createRef } from 'react';
+import { useEffect, createRef} from 'react';
 import {BiHomeCircle} from 'react-icons/bi'
 import './style.css';
-let sidebar = createRef()
+import { gsap, Expo } from "gsap";
+let sidebar = createRef();
+
 const SideBar = () => {
+  useEffect(() => {
+    let children = document.getElementsByClassName("sidebar-icon");
+    [...children].forEach(reference =>{
+      reference.addEventListener("click",e=>{
+        e.preventDefault()
+        var duration = .5;
+        var tl = gsap.timeline({onanimationend: _=>{
+
+        }})
+        reference.style.background = "#000";
+        tl.to(reference, duration/4, {scale: 1.2, ease: Expo.easeIn})
+        tl.to(reference, duration/2, {scale: 1, ease: Expo.easeOut, delay: duration})
+        
+      })
+    })
+  
+    return () => {
+      
+    }
+  }, [])
+  
+  
   return (
     <div className="fixed top-0 left-0 h-screen w-16 flex flex-col
                   bg-white dark:bg-gray-900 shadow-lg" ref={sidebar} id="sidebar">
