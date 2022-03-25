@@ -70,7 +70,15 @@ function init() {
   light.position.set( 5493, 2997, 5037 ).normalize();
   scene.add(light);
   scene.add(ambient);
-
+  let instance = new THREE.TextSprite({
+    alignment: 'center',
+    color: '#000',
+    fontFamily: 'Arial, Helvetica, sans-serif',
+    fontSize: 1000,
+    fontStyle: 'italic',
+    text: "Loading...",
+  });
+  scene.add(instance);
 
 
     var manager = new THREE.LoadingManager();
@@ -88,6 +96,10 @@ function init() {
 
                 mesh = gltf.scene;
                 mesh.scale.set( 800, 800, 800 );
+
+                if (mesh){
+                  console.log("doit")
+                }
                 scene.add( mesh );
     
                 //scene.add( gltf.scene );
