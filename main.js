@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded",e=>{
     });
 });
 const game = document.getElementById("game");
-let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, hlight;
+let scene, camera, renderer, skyboxGeo, skybox, controls, myReq;
 let zoomOut = false;
 let autoRotate = true;
 
@@ -63,10 +63,24 @@ function init() {
   skybox = new THREE.Mesh(skyboxGeo, materialArray);
 
   scene.add(skybox);
+  
+
+  const map = new THREE.TextureLoader().load( 'images/menu/schedablocks.png' );
+  const material = new THREE.SpriteMaterial( { map: map } );
+
+  const sprite = new THREE.Sprite( material );
+
+  sprite.scale(800,800)
+  scene.add( sprite );
 
 
-  hlight = new THREE.AmbientLight(0x404040, 100);
-  skybox.add(hlight)
+
+  //光源を作成
+  var light = new THREE.DirectionalLight("#c1582d", 1);
+  var ambient = new THREE.AmbientLight("#85b2cd");
+  light.position.set( 300, 500, 1000).normalize();
+  scene.add(light);
+  scene.add(ambient);
 
   let loader = new THREE.GLTFLoader();
   loader.load("scene.gltf", function (gltf) {

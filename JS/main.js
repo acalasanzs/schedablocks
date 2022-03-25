@@ -62,14 +62,28 @@ function init() {
   skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
   skybox = new THREE.Mesh(skyboxGeo, materialArray);
 
+  var spriteMap = new THREE.TextureLoader().load( "images/menu/schedablocks.png" );
+  var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
+  var sprite = new THREE.Sprite( spriteMaterial );
+  sprite.scale.set(8000, 8000, 8000)
+  scene.add( sprite );
 
 
   //Luces y ya!
-  var light = new THREE.DirectionalLight("#c1582d", 1);
-  var ambient = new THREE.AmbientLight("#85b2cd");
-  light.position.set( 5493, 2997, 5037 ).normalize();
+  const upColor = 0xFFFF80;
+  const downColor = 0x4040FF;
+
+  var light = new THREE.HemisphereLight(upColor, downColor, 100);
+  var light2 = new THREE.DirectionalLight(0xFFFFFF, 10);
+  light2.position.set(100, -500, 100);
+  var light3 = new THREE.DirectionalLight(0x574b90, 10);
+  light3.position.set(100, 500, 100);
+  var ambient = new THREE.AmbientLight("#85b2cd", 100);
+  scene.add(light3);
+  scene.add(light2);
   scene.add(light);
   scene.add(ambient);
+
   let instance = new THREE.TextSprite({
     alignment: 'center',
     color: '#000',
@@ -78,6 +92,7 @@ function init() {
     fontStyle: 'italic',
     text: "Loading...",
   });
+  instance.name = "loading";
   scene.add(instance);
 
 
@@ -98,7 +113,8 @@ function init() {
                 mesh.scale.set( 800, 800, 800 );
 
                 if (mesh){
-                  console.log("doit")
+                  scene.remove( scene.getObjectByName(instance.name) );
+                  animate();
                 }
                 scene.add( mesh );
     
@@ -128,7 +144,7 @@ function init() {
 
 
 
-
+  
 
   scene.add(skybox);
   controls = new THREE.OrbitControls(camera, renderer.domElement);
