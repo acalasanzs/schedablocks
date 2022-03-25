@@ -57,14 +57,22 @@ function init() {
   renderer.setSize(game.clientWidth, game.clientHeight);
   renderer.domElement.id = 'canvas';
   game.appendChild(renderer.domElement);
-  hlight = new THREE.AmbientLight(0x404040, 100);
-  scene.add(hlight)
   const materialArray = createMaterialArray();
 
   skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
   skybox = new THREE.Mesh(skyboxGeo, materialArray);
 
   scene.add(skybox);
+
+
+  hlight = new THREE.AmbientLight(0x404040, 100);
+  skybox.add(hlight)
+
+  let loader = new THREE.GLTFLoader();
+  loader.load("scene.gltf", function (gltf) {
+      skybox.add(gltf.scene);
+      renderer.render(scene, camera);
+  })
 
 
   controls = new THREE.OrbitControls(camera, renderer.domElement);
