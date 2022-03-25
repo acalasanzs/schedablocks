@@ -30,8 +30,9 @@ document.addEventListener("DOMContentLoaded",e=>{
 const game = document.getElementById("game");
 
 function main() {
-  let scene, camera, renderer, skyboxGeo, skybox, controls, myReq;
-  let menuText, menuWeapon;
+  let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane;
+  var analyser, dataArray;
+  let menuText;
   let autoRotate = true;
   
   function createMaterialArray() {
@@ -43,7 +44,19 @@ function main() {
     });
     return materialArray;
   }
-  
+  function makeRoughGround(mesh, distortionFr) {
+    console.log(mesh)
+    mesh.geometry.vertices.forEach(function (vertex, i) {
+        var amp = 2;
+        var time = Date.now();
+        var distance = (noise.noise2D(vertex.x + time * 0.0003, vertex.y + time * 0.0001) + 0) * distortionFr * amp;
+        vertex.z = distance;
+    });
+    mesh.geometry.verticesNeedUpdate = true;
+    mesh.geometry.normalsNeedUpdate = true;
+    mesh.geometry.computeVertexNormals();
+    mesh.geometry.computeFaceNormals();
+}
   function init() {
   
     scene = new THREE.Scene();
@@ -136,10 +149,80 @@ function main() {
           }
       );
   
+
+
+
+
+
+
+
+
+    /* 
+                                                      ███    ███ ██    ██ ███████ ██  ██████ 
+                                                      ████  ████ ██    ██ ██      ██ ██      
+                                                      ██ ████ ██ ██    ██ ███████ ██ ██      
+                                                      ██  ██  ██ ██    ██      ██ ██ ██      
+                                                      ██      ██  ██████  ███████ ██  ██████
+███    ███ ██    ██ ███████ ██  ██████ 
+████  ████ ██    ██ ██      ██ ██      
+██ ████ ██ ██    ██ ███████ ██ ██      
+██  ██  ██ ██    ██      ██ ██ ██      
+██      ██  ██████  ███████ ██  ██████ 
+                                            ███    ███ ██    ██ ███████ ██  ██████ 
+                                            ████  ████ ██    ██ ██      ██ ██      
+                                            ██ ████ ██ ██    ██ ███████ ██ ██      
+                                            ██  ██  ██ ██    ██      ██ ██ ██      
+                                            ██      ██  ██████  ███████ ██  ██████  
+    */
+    var noise = new SimplexNoise();
+    let audio = new Audio();
+    audio.src = "music/nevermind.mp3";
+    audio.load()
+    let played = document.addEventListener("click",_=>{
+      audio.play()
+      document.removeEventListener("click",played)
+    });
+    var context = new AudioContext();
+    var src = context.createMediaElementSource(audio);
+    analyser = context.createAnalyser();
+    src.connect(analyser);
+    analyser.connect(context.destination);
+    analyser.fftSize = 512;
+    var bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
   
+      //audio.play();
+          /* 
+                                                      ███    ███ ██    ██ ███████ ██  ██████ 
+                                                      ████  ████ ██    ██ ██      ██ ██      
+                                                      ██ ████ ██ ██    ██ ███████ ██ ██      
+                                                      ██  ██  ██ ██    ██      ██ ██ ██      
+                                                      ██      ██  ██████  ███████ ██  ██████
+███    ███ ██    ██ ███████ ██  ██████ 
+████  ████ ██    ██ ██      ██ ██      
+██ ████ ██ ██    ██ ███████ ██ ██      
+██  ██  ██ ██    ██      ██ ██ ██      
+██      ██  ██████  ███████ ██  ██████ 
+                                            ███    ███ ██    ██ ███████ ██  ██████ 
+                                            ████  ████ ██    ██ ██      ██ ██      
+                                            ██ ████ ██ ██    ██ ███████ ██ ██      
+                                            ██  ██  ██ ██    ██      ██ ██ ██      
+                                            ██      ██  ██████  ███████ ██  ██████  
+    */
   
-  
-    
+      var planeGeometry = new THREE.PlaneGeometry(800, 800, 20, 20);
+      var planeMaterial = new THREE.MeshLambertMaterial({
+          color: 0x6904ce,
+          side: THREE.DoubleSide,
+          wireframe: true
+      });
+      
+      plane = new THREE.Mesh(planeGeometry, planeMaterial);
+      plane.rotation.x = -0.5 * Math.PI;
+      plane.position.set(0, 30, 0);
+      plane.position.set(0, -2500, 0);
+      plane.scale.set(30,30)
+      scene.add(plane);
   
     scene.add(skybox);
     controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -151,7 +234,7 @@ function main() {
     window.addEventListener('resize', onWindowResize, false);
     animate();
     
-  }
+  };
   function lights() {
     //Luces y ya!
     const upColor = 0xFFFF80;
@@ -172,6 +255,32 @@ function main() {
     controls.autoRotate = autoRotate;
     
     controls.update();
+
+
+
+    analyser.getByteFrequencyData(dataArray);
+  
+    var lowerHalfArray = dataArray.slice(0, (dataArray.length/2) - 1);
+    var upperHalfArray = dataArray.slice((dataArray.length/2) - 1, dataArray.length - 1);
+    var lowerMax = max(lowerHalfArray);
+    var upperAvg = avg(upperHalfArray);
+    
+
+    var lowerMaxFr = lowerMax / lowerHalfArray.length;
+    var upperAvgFr = upperAvg / upperHalfArray.length;
+
+    makeRoughGround(plane, modulate(upperAvgFr, 0, 1, 0.5, 4));
+  
+    group.rotation.y += 0.005;
+
+
+
+
+
+
+
+
+
   
     
     renderer.render(scene, camera);
@@ -394,3 +503,22 @@ document.getElementById("schedablocks").addEventListener("click",_=>{if(document
 document.getElementById("home").addEventListener("click", _=>{
   location.replace("https://youtu.be/dQw4w9WgXcQ");
 })
+//some helper functions here
+function fractionate(val, minVal, maxVal) {
+  return (val - minVal)/(maxVal - minVal);
+}
+
+function modulate(val, minVal, maxVal, outMin, outMax) {
+  var fr = fractionate(val, minVal, maxVal);
+  var delta = outMax - outMin;
+  return outMin + (fr * delta);
+}
+
+function avg(arr){
+  var total = arr.reduce(function(sum, b) { return sum + b; });
+  return (total / arr.length);
+}
+
+function max(arr){
+  return arr.reduce(function(a, b){ return Math.max(a, b); })
+}
