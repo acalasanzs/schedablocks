@@ -50,16 +50,73 @@ function init() {
     45,
     30000,
   );
-  camera.position.set(5493, 2997, 5037);
-
+  camera.position.set(5493, 3556, -4089);
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true,
     logarithmicDepthBuffer: true });
   renderer.setSize(game.clientWidth, game.clientHeight);
+  renderer.setClearColor(0x574b90, 1);
+  renderer.gammaOutput = true; 
   game.appendChild(renderer.domElement);
   const materialArray = createMaterialArray();
 
   skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
   skybox = new THREE.Mesh(skyboxGeo, materialArray);
+
+
+
+  //Luces y ya!
+  var light = new THREE.DirectionalLight("#c1582d", 1);
+  var ambient = new THREE.AmbientLight("#85b2cd");
+  light.position.set( 5493, 2997, 5037 ).normalize();
+  scene.add(light);
+  scene.add(ambient);
+
+
+
+    var manager = new THREE.LoadingManager();
+    manager.onProgress = function ( item, loaded, total ) {};
+
+    // 3Dモデル用テクスチャ画像の読込
+    var loader = new THREE.GLTFLoader();
+
+    // Load a glTF resource
+    loader.load(
+        // resource URL
+        'scene.gltf',
+        // called when the resource is loaded
+        function ( gltf ) {
+
+                mesh = gltf.scene;
+                mesh.scale.set( 800, 800, 800 );
+                scene.add( mesh );
+    
+                //scene.add( gltf.scene );
+
+                //gltf.animations; // Array<THREE.AnimationClip>
+                //gltf.scene; // THREE.Scene
+                //gltf.scenes; // Array<THREE.Scene>
+                //gltf.cameras; // Array<THREE.Camera>
+                //gltf.asset; // Object
+
+        },
+        // called when loading is in progresses
+        function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+        },
+        // called when loading has errors
+        function ( error ) {
+
+                console.log( 'An error happened' );
+
+        }
+    );
+
+
+
+
+
 
   scene.add(skybox);
   controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -70,6 +127,7 @@ function init() {
   controls.maxDistance = 20000;
   window.addEventListener('resize', onWindowResize, false);
   animate();
+  
 }
 function onWindowResize() {
   camera.aspect = game.clientWidth / game.clientHeight;
