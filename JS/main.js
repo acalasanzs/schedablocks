@@ -223,6 +223,7 @@ function scenario1() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('white');
   game.appendChild(renderer.domElement);
+  const canvas = renderer.domElement;
 
   // put the camera on a pole (parent it to an object)
   // so we can spin the pole to move the camera around the scene
@@ -269,17 +270,6 @@ function scenario1() {
     cube.scale.set(rand(3, 6), rand(3, 6), rand(3, 6));
   }
 
-  function resizeRendererToDisplaySize(renderer) {
-    const canvas = renderer.domElement;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    const needResize = canvas.width !== width || canvas.height !== height;
-    if (needResize) {
-      renderer.setSize(width, height, false);
-    }
-    return needResize;
-  }
-
   class PickHelper {
     constructor() {
       this.raycaster = new THREE.Raycaster();
@@ -315,12 +305,6 @@ function scenario1() {
   function render(time) {
     time *= 0.001;  // convert to seconds;
 
-    if (resizeRendererToDisplaySize(renderer)) {
-      const canvas = renderer.domElement;
-      camera.aspect = canvas.clientWidth / canvas.clientHeight;
-      camera.updateProjectionMatrix();
-    }
-
     cameraPole.rotation.y = time * .1;
 
     pickHelper.pick(pickPosition, scene, camera, time);
@@ -353,6 +337,7 @@ function scenario1() {
     pickPosition.x = -100000;
     pickPosition.y = -100000;
   }
+  window.addEventListener("resize", onWindowResize(camera, renderer))
   window.addEventListener('mousemove', setPickPosition);
   window.addEventListener('mouseout', clearPickPosition);
   window.addEventListener('mouseleave', clearPickPosition);
@@ -368,9 +353,43 @@ function scenario1() {
   });
 
   window.addEventListener('touchend', clearPickPosition);
+  
+}
+function onWindowResize(camera, renderer) {
+  camera.aspect = game.clientWidth / game.clientHeight;
+
+  camera.updateProjectionMatrix();
+  renderer.setSize(game.clientWidth, game.clientHeight);
+}
+class Particles {
+  constructor(scene,howMany) {
+    this.scene = scene;
+    this.howMany = howMany;
+  }
+  init() {
+      var particle = new THREE.Object3D();
+      this.scene.add(particle);
+
+      var geometry = new THREE.TetrahedronGeometry(2, 0);
+      var material = new THREE.MeshNormalMaterial();
+
+      for (var i = 0; i < this.howMany; i++) {
+        var mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+        mesh.position.multiplyScalar(90 + (Math.random() * 700));
+        mesh.rotation.set(Math.random() * 2, Math.random() * 2, Math.random() * 2);
+        particle.add(mesh);
+      }
+  }
+  animate() {
+    particle.rotation.y +=.004;
+  }
 }
 main();
 
 
 document.getElementById("new").addEventListener("click",_=>{if(document.querySelector("canvas"))document.querySelector("canvas").remove();scenario1()}, false);
 document.getElementById("schedablocks").addEventListener("click",_=>{if(document.querySelector("canvas"))document.querySelector("canvas").remove();main()}, false);
+document.getElementById("home").addEventListener("click", _=>{
+  location.replace("https://youtu.be/dQw4w9WgXcQ");
+})
