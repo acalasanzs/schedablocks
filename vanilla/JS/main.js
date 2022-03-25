@@ -28,47 +28,75 @@ document.addEventListener("DOMContentLoaded",e=>{
     });
 });
 const game = document.getElementById("game");
-let scene, camera, renderer;
+let scene, camera, renderer, skyboxGeo, skybox, controls, myReq;
+let zoomOut = false;
+let autoRotate = true;
+
+function createMaterialArray() {
+  const skyboxImagepaths = ["images/menu/front.jpg", "images/menu/back.jpg", "images/menu/up.jpg", "images/menu/down.jpg", "images/menu/right.jpg", "images/menu/left.jpg",];
+  const materialArray = skyboxImagepaths.map(image => {
+    let texture = new THREE.TextureLoader().load(image);
+
+    return new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
+  });
+  return materialArray;
+}
 
 function init() {
-    scene = new THREE.Scene;
 
-    camera = new THREE.PerspectiveCamera(55, game.clientWidth/game.clientHeight, 45, 30000);
-    camera.position.set(-900,-200,-900);
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(
+    55,
+    game.clientWidth/ game.clientHeight,
+    45,
+    30000,
+  );
+  camera.position.set(1200, -250, 2000);
 
-        renderer = new THREE.WebGLRenderer({antialias:true});
-        renderer.setSize(window.innerWidth,window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(game.clientWidth, game.clientHeight);
+  renderer.domElement.id = 'canvas';
+  game.appendChild(renderer.domElement);
 
-        let controls = new THREE.OrbitControls(camera);
-        controls.addEventListener('change', renderer);
-        controls.minDistance = 500;
-        controls.maxDistance = 1500;
-        
-        
-        let materialArray = [];
-        let texture_ft = new THREE.TextureLoader().load( 'images/menu/front.jpg');
-        let texture_bk = new THREE.TextureLoader().load( 'images/menu/back.jpg');
-        let texture_up = new THREE.TextureLoader().load( 'images/menu/up.jpg');
-        let texture_dn = new THREE.TextureLoader().load( 'images/menu/down.jpg');
-        let texture_rt = new THREE.TextureLoader().load( 'images/menu/right.jpg');
-        let texture_lf = new THREE.TextureLoader().load( 'images/menu/left.jpg');
-          
-        materialArray.push(new THREE.MeshBasicMaterial( { map: texture_ft }));
-        materialArray.push(new THREE.MeshBasicMaterial( { map: texture_bk }));
-        materialArray.push(new THREE.MeshBasicMaterial( { map: texture_up }));
-        materialArray.push(new THREE.MeshBasicMaterial( { map: texture_dn }));
-        materialArray.push(new THREE.MeshBasicMaterial( { map: texture_rt }));
-        materialArray.push(new THREE.MeshBasicMaterial( { map: texture_lf }));
-   
-        for (let i = 0; i < 6; i++) materialArray[i].side = THREE.BackSide;
-        let skyboxGeo = new THREE.BoxGeometry( 10000, 10000, 10000);
-        let skybox = new THREE.Mesh( skyboxGeo, materialArray );
-        scene.add( skybox );  
-        animate();
+  const materialArray = createMaterialArray();
+
+  skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
+  skybox = new THREE.Mesh(skyboxGeo, materialArray);
+
+  scene.add(skybox);
+
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enabled = true;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 1.0;
+
+  window.addEventListener('resize', onWindowResize, false);
+  animate();
 }
+function onWindowResize() {
+  camera.aspect = game.clientWidth / game.clientHeight;
+
+  camera.updateProjectionMatrix();
+  renderer.setSize(game.clientWidth, game.clientHeight);
+}
+
 function animate() {
-    renderer.render(scene,camera);
-    requestAnimationFrame(animate);
+    controls.autoRotate = autoRotate;
+  
+    if(controls.maxDistance == 1500 && zoomOut) {
+    
+      controls.maxDistance = 20000;
+      camera.position.z = 20000;
+    } else if(controls.maxDistance == 20000 && !zoomOut) {
+      controls.maxDistance = 1500;
+      camera.position.z = 2000;
+    }
+    
+    controls.update();
+    renderer.render(scene, camera);
+    myReq = window.requestAnimationFrame(animate);
+   
 }
+
 init();
