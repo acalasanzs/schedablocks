@@ -57,7 +57,8 @@ function init() {
   renderer.setSize(game.clientWidth, game.clientHeight);
   renderer.domElement.id = 'canvas';
   game.appendChild(renderer.domElement);
-
+  hlight = new THREE.AmbientLight(0x404040, 100);
+  scene.add(hlight)
   const materialArray = createMaterialArray();
 
   skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
