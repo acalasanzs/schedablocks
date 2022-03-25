@@ -219,7 +219,9 @@ function scenario1() {
   const far = 200;
   const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
   camera.position.z = 30;
-
+  window.addEventListener("resize", _=>{
+    onWindowResize(camera, renderer);
+  });
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('white');
   game.appendChild(renderer.domElement);
@@ -337,7 +339,6 @@ function scenario1() {
     pickPosition.x = -100000;
     pickPosition.y = -100000;
   }
-  window.addEventListener("resize", onWindowResize(camera, renderer))
   window.addEventListener('mousemove', setPickPosition);
   window.addEventListener('mouseout', clearPickPosition);
   window.addEventListener('mouseleave', clearPickPosition);
