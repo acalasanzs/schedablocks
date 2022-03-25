@@ -3,12 +3,12 @@ import { createRef } from 'react/cjs/react.production.min';
 import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import * as GSAP from 'gsap';
-import up from '../../images/menu/up.png'
-import right from '../../images/menu/right.png'
-import left from '../../images/menu/left.png'
-import front from '../../images/menu/front.png'
-import down from '../../images/menu/down.png'
-import back from '../../images/menu/back.png'
+import up from '../../images/menu/up.jpg'
+import right from '../../images/menu/right.jpg'
+import left from '../../images/menu/left.jpg'
+import front from '../../images/menu/front.jpg'
+import down from '../../images/menu/down.jpg'
+import back from '../../images/menu/back.jpg'
 let scene, camera, renderer;
 
 let game = createRef();
@@ -243,12 +243,7 @@ class Game extends Component {
     }, 300)})
 
     let controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.25;
-    controls.enableZoom = true;
-
-    controls.enablePan = true;
-    controls.addEventListener("change",renderer)
+    controls.addEventListener("change",renderer);
 
     let materialArray = [];
     let texture_ft = new THREE.TextureLoader().load(front);
