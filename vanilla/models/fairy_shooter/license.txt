@@ -1,0 +1,11 @@
+Model Information:
+* title:	FAIRY SHOOTER
+* source:	https://sketchfab.com/3d-models/fairy-shooter-cc2e6d4221bf41b9a6ee17d8a8e18d89
+* author:	voxarcana (https://sketchfab.com/voxarcana)
+
+Model License:
+* license type:	CC-BY-NC-ND-4.0 (http://creativecommons.org/licenses/by-nc-nd/4.0/)
+* requirements:	Author must be credited. No commercial use. Modified versions can not be distributed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "FAIRY SHOOTER" (https://sketchfab.com/3d-models/fairy-shooter-cc2e6d4221bf41b9a6ee17d8a8e18d89) by voxarcana (https://sketchfab.com/voxarcana) licensed under CC-BY-NC-ND-4.0 (http://creativecommons.org/licenses/by-nc-nd/4.0/)

@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded",e=>{
     });
 });
 const game = document.getElementById("game");
-let scene, camera, renderer, skyboxGeo, skybox, controls, myReq;
+let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, hlight;
 let zoomOut = false;
 let autoRotate = true;
 
@@ -51,7 +51,7 @@ function init() {
     45,
     30000,
   );
-  camera.position.set(1200, -250, 2000);
+  camera.position.set(5493, 2997, 5037);
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(game.clientWidth, game.clientHeight);
@@ -70,7 +70,6 @@ function init() {
   controls.enabled = true;
   controls.autoRotate = true;
   controls.autoRotateSpeed = 1.0;
-
   window.addEventListener('resize', onWindowResize, false);
   animate();
 }
@@ -83,15 +82,6 @@ function onWindowResize() {
 
 function animate() {
     controls.autoRotate = autoRotate;
-  
-    if(controls.maxDistance == 1500 && zoomOut) {
-    
-      controls.maxDistance = 20000;
-      camera.position.z = 20000;
-    } else if(controls.maxDistance == 20000 && !zoomOut) {
-      controls.maxDistance = 1500;
-      camera.position.z = 2000;
-    }
     
     controls.update();
     renderer.render(scene, camera);
