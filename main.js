@@ -28,7 +28,8 @@ document.addEventListener("DOMContentLoaded",e=>{
     });
 });
 const game = document.getElementById("game");
-let scene, camera, renderer, skyboxGeo, skybox, controls, myReq;
+let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, hlight;
+let zoomOut = false;
 let autoRotate = true;
 
 function createMaterialArray() {
@@ -52,9 +53,9 @@ function init() {
   );
   camera.position.set(5493, 2997, 5037);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true,
-    logarithmicDepthBuffer: true });
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(game.clientWidth, game.clientHeight);
+  renderer.domElement.id = 'canvas';
   game.appendChild(renderer.domElement);
   const materialArray = createMaterialArray();
 
@@ -62,12 +63,22 @@ function init() {
   skybox = new THREE.Mesh(skyboxGeo, materialArray);
 
   scene.add(skybox);
+
+
+  hlight = new THREE.AmbientLight(0x404040, 100);
+  skybox.add(hlight)
+
+  let loader = new THREE.GLTFLoader();
+  loader.load("scene.gltf", function (gltf) {
+      skybox.add(gltf.scene);
+      renderer.render(scene, camera);
+  })
+
+
   controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enabled = true;
   controls.autoRotate = true;
   controls.autoRotateSpeed = 1.0;
-  controls.minDistance = 700;
-  controls.maxDistance = 20000;
   window.addEventListener('resize', onWindowResize, false);
   animate();
 }
