@@ -53,7 +53,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
   mesh.geometry.computeFaceNormals();
 }
   function createMaterialArray() {
-    const skyboxImagepaths = ["images/menu/front.jpg", "images/menu/back.jpg", "images/menu/up.jpg", "images/menu/down.jpg", "images/menu/right.jpg", "images/menu/left.jpg",];
+    const skyboxImagepaths = ["images/menu/front.png", "images/menu/back.png", "images/menu/up.png", "images/menu/down.png", "images/menu/right.png", "images/menu/left.png",];
     const materialArray = skyboxImagepaths.map(image => {
       let texture = new THREE.TextureLoader().load(image);
   
@@ -86,8 +86,8 @@ function makeRoughBall(mesh, bassFr, treFr) {
     var spriteMap = new THREE.TextureLoader().load( "images/menu/schedablocks.png" );
     var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
     menuText = new THREE.Sprite( spriteMaterial );
-    menuText.position.set(0,2000,0);
-    menuText.scale.set(8000, 8000, 8000)
+    menuText.position.set(0,2500,0);
+    menuText.scale.set(4000, 4000, 4000)
     scene.add( menuText );
     menuText.name = "menuText";
   
@@ -121,7 +121,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
           function ( gltf ) {
   
                   mesh = gltf.scene;
-                  mesh.scale.set( 800, 800, 800 );
+                  mesh.scale.set( 400, 400, 400 );
   
                   if (mesh){
                     scene.remove( scene.getObjectByName(instance.name) );
@@ -202,7 +202,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
     
     plane = new THREE.Mesh(planeGeometry, planeMaterial);
     plane.rotation.x = -0.5 * Math.PI;
-    plane.position.set(0, -2500, 0);
+    plane.position.set(0, -1250, 0);
     plane.scale.set(13,13, 13);
     scene.add(plane);
 
@@ -266,7 +266,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
     controls.autoRotate = true;
     controls.autoRotateSpeed = 1.0;
     controls.minDistance = 700;
-    controls.maxDistance = 20000;
+    controls.maxDistance = 7000;
     window.addEventListener('resize', onWindowResize, false);
 
     stats = new Stats();
