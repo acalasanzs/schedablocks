@@ -150,10 +150,16 @@ function main() {
                                             ██      ██  ██████  ███████ ██  ██████  
     */
 
-
+ let audio = new Audio();
+    audio.src = "music/nevermind.mp3";
+    audio.load()
+    let played = document.addEventListener("click",_=>{
+      audio.play()
+      document.removeEventListener("click",played)
+    });
     var planeGeometry = new THREE.PlaneGeometry(800, 800, 20, 20);
     var planeMaterial = new THREE.MeshLambertMaterial({
-        color: 0x6904ce,
+        color: 0x624fc2,
         side: THREE.DoubleSide,
         wireframe: true
     });
