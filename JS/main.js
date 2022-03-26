@@ -541,8 +541,9 @@ class MyDeliciousGame {
     this.far = 200;
     this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
     this.camera.position.z = 30;
-    this.scene.setClearColor(0x000000);
+    this.renderer.setClearColor(0x000000);
     game.appendChild(this.renderer.domElement);
+    console.log(game)
     this.canvas = this.renderer.domElement;
   }
   windowResize() {
@@ -580,7 +581,7 @@ class Particles {
 
 
 let mainScenario;
-const songs = ["music/bakamitai.mp3","music/head.mp3","music/nevermind.mp3","music/through.mp3","music/weekend.mp3"];
+const songs = ["music/bakamitai.mp3","music/head.mp3","music/nevermind.mp3","music/through.mp3","music/weekend.mp3","music/nandemonaiya.mp3"];
 document.getElementById("new").addEventListener("click",_=>{
   if(document.querySelector("canvas"))document.querySelector("canvas").remove();
   if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
