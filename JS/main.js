@@ -20,11 +20,38 @@ document.addEventListener("DOMContentLoaded",e=>{
 const game = document.getElementById("game");
 const audio = new Audio();
 function main() {
-  let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane;
+  var noise = new SimplexNoise();
+  let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane, ball;
   var analyser, dataArray, stats;
   let menuText;
   let autoRotate = true;
-  
+  function makeRoughGround(mesh, distortionFr) {
+    mesh.geometry.vertices.forEach(function (vertex, i) {
+        var amp = 30;
+        var time = Date.now();
+        var distance = (noise.noise2D(vertex.x + time * 0.0003, vertex.y + time * 0.0001) + 0) * distortionFr * amp;
+        vertex.z = distance;
+    });
+    mesh.geometry.verticesNeedUpdate = true;
+    mesh.geometry.normalsNeedUpdate = true;
+    mesh.geometry.computeVertexNormals();
+    mesh.geometry.computeFaceNormals();
+}
+function makeRoughBall(mesh, bassFr, treFr) {
+  mesh.geometry.vertices.forEach(function (vertex, i) {
+      var offset = mesh.geometry.parameters.radius;
+      var amp = 7;
+      var time = window.performance.now();
+      vertex.normalize();
+      var rf = 0.00001;
+      var distance = (offset + bassFr ) + noise.noise3D(vertex.x + time *rf*7, vertex.y +  time*rf*8, vertex.z + time*rf*9) * amp * treFr;
+      vertex.multiplyScalar(distance);
+  });
+  mesh.geometry.verticesNeedUpdate = true;
+  mesh.geometry.normalsNeedUpdate = true;
+  mesh.geometry.computeVertexNormals();
+  mesh.geometry.computeFaceNormals();
+}
   function createMaterialArray() {
     const skyboxImagepaths = ["images/menu/front.jpg", "images/menu/back.jpg", "images/menu/up.jpg", "images/menu/down.jpg", "images/menu/right.jpg", "images/menu/left.jpg",];
     const materialArray = skyboxImagepaths.map(image => {
@@ -165,10 +192,30 @@ function main() {
     
     plane = new THREE.Mesh(planeGeometry, planeMaterial);
     plane.rotation.x = -0.5 * Math.PI;
-    plane.position.set(0, 30, 0);
     plane.position.set(0, -2500, 0);
-    plane.scale.set(30,30);
+    plane.scale.set(30,30, 30);
     scene.add(plane);
+
+    var icosahedronGeometry = new THREE.IcosahedronGeometry(10, 4);
+    var lambertMaterial = new THREE.MeshLambertMaterial({
+        color: 0xff00ee,
+        wireframe: true
+    });
+
+    ball = new THREE.Mesh(icosahedronGeometry, lambertMaterial);
+    ball.position.set(0, 2500, 0);
+    ball.scale.set(40,40,40);
+    scene.add(ball);
+
+
+    var context = new AudioContext();
+    var src = context.createMediaElementSource(audio);
+    analyser = context.createAnalyser();
+    src.connect(analyser);
+    analyser.connect(context.destination);
+    analyser.fftSize = 512;
+    var bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
           /* 
                                                       ███    ███ ██    ██ ███████ ██  ██████ 
                                                       ████  ████ ██    ██ ██      ██ ██      
@@ -232,8 +279,19 @@ function main() {
     stats.begin();
 
 
+    analyser.getByteFrequencyData(dataArray);
+
+    var lowerHalfArray = dataArray.slice(0, (dataArray.length/2) - 1);
+    var upperHalfArray = dataArray.slice((dataArray.length/2) - 1, dataArray.length - 1);
+    var lowerMax = max(lowerHalfArray);
+    var upperAvg = avg(upperHalfArray);
 
 
+    var lowerMaxFr = lowerMax / lowerHalfArray.length;
+    var upperAvgFr = upperAvg / upperHalfArray.length;
+
+    makeRoughGround(plane, modulate(upperAvgFr, 0, 1, 0.5, 4));
+    makeRoughBall(ball, modulate(Math.pow(lowerMaxFr, 0.8), 0, 1, 0, 8), modulate(upperAvgFr, 0, 1, 0, 4));
 
 
 
