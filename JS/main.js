@@ -19,10 +19,10 @@ document.addEventListener("DOMContentLoaded",e=>{
 });
 const game = document.getElementById("game");
 const audio = new Audio();
+var analyser, dataArray, stats;
 function main() {
   var noise = new SimplexNoise();
   let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane, ball;
-  var analyser, dataArray, stats;
   let menuText;
   let autoRotate = true;
   function makeRoughGround(mesh, distortionFr) {
@@ -86,6 +86,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
     var spriteMap = new THREE.TextureLoader().load( "images/menu/schedablocks.png" );
     var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
     menuText = new THREE.Sprite( spriteMaterial );
+    menuText.position.set(0,2000,0);
     menuText.scale.set(8000, 8000, 8000)
     scene.add( menuText );
     menuText.name = "menuText";
@@ -183,39 +184,59 @@ function makeRoughBall(mesh, bassFr, treFr) {
       audio.play()
       document.removeEventListener("click",played)
     });
+    const ballTextureLoader = new THREE.TextureLoader();
+    const balltilesHeightMap = new ballTextureLoader.load('images/menu/ball/Metal_scratched_009_height.png');
+    const balltilesRoughnessMap = new ballTextureLoader.load('images/menu/ball/Metal_scratched_009_roughness.jpg');
+    const balltilesAmbientOcclusionMap = new ballTextureLoader.load('images/menu/ball/Metal_scratched_009_ambientOcclusion.jpg');
+
     var planeGeometry = new THREE.PlaneGeometry(800, 800, 20, 20);
-    var planeMaterial = new THREE.MeshLambertMaterial({
-        color: 0x624fc2,
-        side: THREE.DoubleSide,
-        wireframe: true
+    var planeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x000000,
+        displacementMap: balltilesHeightMap,
+        displacementScale: 1,
+        roughnessMap: balltilesRoughnessMap,
+        roughness: 1,
+        aoMap: balltilesAmbientOcclusionMap,
+        side: THREE.DoubleSide
     });
     
     plane = new THREE.Mesh(planeGeometry, planeMaterial);
     plane.rotation.x = -0.5 * Math.PI;
     plane.position.set(0, -2500, 0);
-    plane.scale.set(30,30, 30);
+    plane.scale.set(13,13, 13);
     scene.add(plane);
 
+    const balltilesBaseColor = new ballTextureLoader.load('images/menu/ball/Metal_scratched_009_basecolor.jpg');
+    const balltilesNormalMap = new ballTextureLoader.load('images/menu/ball/Metal_scratched_009_normal.jpg');
+
     var icosahedronGeometry = new THREE.IcosahedronGeometry(10, 4);
-    var lambertMaterial = new THREE.MeshLambertMaterial({
-        color: 0xff00ee,
-        wireframe: true
+    var lambertMaterial = new THREE.MeshStandardMaterial({
+        map: balltilesBaseColor,
+        normalMap: balltilesNormalMap,
+        displacementMap: balltilesHeightMap,
+        displacementScale: 1,
+        roughnessMap: balltilesRoughnessMap,
+        roughness: 1,
+        aoMap: balltilesAmbientOcclusionMap
     });
 
     ball = new THREE.Mesh(icosahedronGeometry, lambertMaterial);
-    ball.position.set(0, 2500, 0);
-    ball.scale.set(40,40,40);
+    ball.position.set(4000,-150, 0);
+    ball.scale.set(20,20,20);
     scene.add(ball);
 
 
-    var context = new AudioContext();
-    var src = context.createMediaElementSource(audio);
-    analyser = context.createAnalyser();
-    src.connect(analyser);
-    analyser.connect(context.destination);
-    analyser.fftSize = 512;
-    var bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
+    if (!analyser) {
+      var context = new AudioContext();
+      var src = context.createMediaElementSource(audio);
+      analyser = context.createAnalyser();
+      src.connect(analyser);
+      analyser.connect(context.destination);
+      analyser.fftSize = 512;
+      var bufferLength = analyser.frequencyBinCount;
+      dataArray = new Uint8Array(bufferLength);
+    }
+    
           /* 
                                                       ███    ███ ██    ██ ███████ ██  ██████ 
                                                       ████  ████ ██    ██ ██      ██ ██      
@@ -261,12 +282,12 @@ function makeRoughBall(mesh, bassFr, treFr) {
     const upColor = 0xFFFF80;
     const downColor = 0x4040FF;
   
-    var light = new THREE.HemisphereLight(upColor, downColor, 100);
-    var light2 = new THREE.DirectionalLight(0xFFFFFF, 10);
+    var light = new THREE.HemisphereLight(upColor, downColor, 1);
+    var light2 = new THREE.DirectionalLight(0xFFFFFF, 1);
     light2.position.set(100, -500, 100);
-    var light3 = new THREE.DirectionalLight(0x574b90, 10);
+    var light3 = new THREE.DirectionalLight(0x574b90, 1);
     light3.position.set(100, 500, 100);
-    var ambient = new THREE.AmbientLight("#85b2cd", 100);
+    var ambient = new THREE.AmbientLight("#85b2cd", 1);
     scene.add(light3);
     scene.add(light2);
     scene.add(light);
@@ -518,9 +539,7 @@ class Particles {
 }
 
 
-//main();
-
-
+let mainScenario;
 document.getElementById("new").addEventListener("click",_=>{
   if(document.querySelector("canvas"))document.querySelector("canvas").remove();
   if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
@@ -535,8 +554,7 @@ document.getElementById("new").addEventListener("click",_=>{
 document.getElementById("schedablocks").addEventListener("click",_=>{
   if(document.querySelector("canvas"))document.querySelector("canvas").remove();
   if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
-
-  main();
+  mainScenario = new main();
 }, false);
 document.getElementById("home").addEventListener("click", _=>{
   location.replace("https://youtu.be/dQw4w9WgXcQ");
