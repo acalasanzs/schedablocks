@@ -90,7 +90,9 @@ function makeRoughBall(mesh, bassFr, treFr) {
     menuText.scale.set(4000, 4000, 4000);
     scene.add( menuText );
     menuText.name = "menuText";
-  
+
+
+    
     lights()
   
   
@@ -273,7 +275,15 @@ function makeRoughBall(mesh, bassFr, treFr) {
     // 60 fps
     interval = 1 / 60;
 
-
+    var startspriteMap = new THREE.TextureLoader().load( "images/menu/start.png" );
+    var startspriteMaterial = new THREE.SpriteMaterial( { map: startspriteMap} );
+    startspriteMaterial.depthWrite = false;
+    startspriteMaterial.depthTest  = false;
+    start = new THREE.Sprite( startspriteMaterial );
+    start.position.set(0,-2000,0);
+    start.scale.set(1890*3,250*3,1);
+    scene.add( start );
+    start.name = "start";
 
     animate();
     
