@@ -13,16 +13,6 @@ document.addEventListener("DOMContentLoaded",e=>{
         reference.querySelector("path").style.fill = "#fff";
         tl.to(reference, duration/4, {scale: 1.2, ease: Expo.easeIn})
         tl.to(reference, duration/2, {scale: 1, ease: Expo.easeOut, delay: duration})
-        switch (reference.i) {
-          case 0:
-            break;
-          case 1:
-            break;
-          case 2:
-            break;
-          default:
-            break;
-        }
       });
       i++;
     });
@@ -31,7 +21,7 @@ const game = document.getElementById("game");
 
 function main() {
   let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane;
-  var analyser, dataArray;
+  var analyser, dataArray, stats;
   let menuText;
   let autoRotate = true;
   
@@ -44,21 +34,11 @@ function main() {
     });
     return materialArray;
   }
-  function makeRoughGround(mesh, distortionFr) {
-    console.log(mesh)
-    mesh.geometry.vertices.forEach(function (vertex, i) {
-        var amp = 2;
-        var time = Date.now();
-        var distance = (noise.noise2D(vertex.x + time * 0.0003, vertex.y + time * 0.0001) + 0) * distortionFr * amp;
-        vertex.z = distance;
-    });
-    mesh.geometry.verticesNeedUpdate = true;
-    mesh.geometry.normalsNeedUpdate = true;
-    mesh.geometry.computeVertexNormals();
-    mesh.geometry.computeFaceNormals();
-}
   function init() {
-  
+    
+    stats = new Stats();
+    stats.showPanel( 1 );
+    document.body.appendChild( stats.dom );
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(
       55,
@@ -190,8 +170,21 @@ function main() {
     analyser.fftSize = 512;
     var bufferLength = analyser.frequencyBinCount;
     dataArray = new Uint8Array(bufferLength);
-  
-      //audio.play();
+
+
+    var planeGeometry = new THREE.PlaneGeometry(800, 800, 20, 20);
+    var planeMaterial = new THREE.MeshLambertMaterial({
+        color: 0x6904ce,
+        side: THREE.DoubleSide,
+        wireframe: true
+    });
+    
+    plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    plane.rotation.x = -0.5 * Math.PI;
+    plane.position.set(0, 30, 0);
+    plane.position.set(0, -2500, 0);
+    plane.scale.set(30,30);
+    scene.add(plane);
           /* 
                                                       ███    ███ ██    ██ ███████ ██  ██████ 
                                                       ████  ████ ██    ██ ██      ██ ██      
@@ -210,21 +203,12 @@ function main() {
                                             ██      ██  ██████  ███████ ██  ██████  
     */
   
-      var planeGeometry = new THREE.PlaneGeometry(800, 800, 20, 20);
-      var planeMaterial = new THREE.MeshLambertMaterial({
-          color: 0x6904ce,
-          side: THREE.DoubleSide,
-          wireframe: true
-      });
-      
-      plane = new THREE.Mesh(planeGeometry, planeMaterial);
-      plane.rotation.x = -0.5 * Math.PI;
-      plane.position.set(0, 30, 0);
-      plane.position.set(0, -2500, 0);
-      plane.scale.set(30,30)
-      scene.add(plane);
-  
     scene.add(skybox);
+
+
+
+
+
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enabled = true;
     controls.autoRotate = true;
@@ -253,27 +237,8 @@ function main() {
   }
   function animate() {
     controls.autoRotate = autoRotate;
-    
+    stats.begin();
     controls.update();
-
-
-
-    analyser.getByteFrequencyData(dataArray);
-  
-    var lowerHalfArray = dataArray.slice(0, (dataArray.length/2) - 1);
-    var upperHalfArray = dataArray.slice((dataArray.length/2) - 1, dataArray.length - 1);
-    var lowerMax = max(lowerHalfArray);
-    var upperAvg = avg(upperHalfArray);
-    
-
-    var lowerMaxFr = lowerMax / lowerHalfArray.length;
-    var upperAvgFr = upperAvg / upperHalfArray.length;
-
-    makeRoughGround(plane, modulate(upperAvgFr, 0, 1, 0.5, 4));
-  
-    group.rotation.y += 0.005;
-
-
 
 
 
@@ -284,6 +249,7 @@ function main() {
   
     
     renderer.render(scene, camera);
+    stats.end();
     myReq = window.requestAnimationFrame(animate);
    
   }
@@ -495,6 +461,8 @@ class Particles {
     particle.rotation.y +=.004;
   }
 }
+
+
 main();
 
 
