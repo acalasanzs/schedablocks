@@ -91,19 +91,6 @@ function makeRoughBall(mesh, bassFr, treFr) {
     scene.add( menuText );
     menuText.name = "menuText";
   
-  
-    let instance = new THREE.TextSprite({
-      alignment: 'center',
-      color: '#000',
-      fontFamily: 'Arial, Helvetica, sans-serif',
-      fontSize: 1000,
-      fontStyle: 'italic',
-      text: "Loading...",
-    });
-    instance.name = "loading";
-    scene.add(instance);
-  
-  
     lights()
   
   
@@ -124,7 +111,6 @@ function makeRoughBall(mesh, bassFr, treFr) {
                   mesh.scale.set( 400, 400, 400 );
   
                   if (mesh){
-                    scene.remove( scene.getObjectByName(instance.name) );
                     animate();
                   }
                   scene.add( mesh );
@@ -286,8 +272,6 @@ function makeRoughBall(mesh, bassFr, treFr) {
     delta = 0;
     // 60 fps
     interval = 1 / 60;
-
-
 
 
 
