@@ -168,6 +168,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
     particles = new Particles(scene, 150);
     particles.init();
     audio.src = audioSrc;
+    audio.loop = true;
     audio.load()
     let played = document.addEventListener("click",_=>{
       audio.play()
@@ -376,9 +377,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
 
 
 
-
-
-function scenario1() {
+/* function scenario1() {
   const renderer = new THREE.WebGLRenderer({antialias: true});
   renderer.setSize(game.clientWidth, game.clientHeight);
   const fov = 60;
@@ -529,6 +528,26 @@ function onWindowResize(camera, renderer) {
 
   camera.updateProjectionMatrix();
   renderer.setSize(game.clientWidth, game.clientHeight);
+} */
+
+class MyDeliciousGame {
+  constructor(game) {
+    this.scene = new THREE.Scene();
+    this.renderer = new THREE.WebGLRenderer({antialias: true});
+    this.renderer.setSize(game.clientWidth, game.clientHeight);
+    this.fov = 100;
+    this.aspect = game.clientWidth/ game.clientHeight;  // the canvas default
+    this.near = 0.1;
+    this.far = 200;
+    this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
+    this.camera.position.z = 30;
+    this.scene.setClearColor(0x000000);
+    game.appendChild(this.renderer.domElement);
+    this.canvas = this.renderer.domElement;
+  }
+  windowResize() {
+
+  }
 }
 class Particles {
   constructor(scene,howMany, scale = 30, offset = 5) {
@@ -561,6 +580,7 @@ class Particles {
 
 
 let mainScenario;
+const songs = ["music/bakamitai.mp3","music/head.mp3","music/nevermind.mp3","music/through.mp3","music/weekend.mp3"];
 document.getElementById("new").addEventListener("click",_=>{
   if(document.querySelector("canvas"))document.querySelector("canvas").remove();
   if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
@@ -570,12 +590,13 @@ document.getElementById("new").addEventListener("click",_=>{
       clearInterval(pause);
   },10)
   audio.currentTime = 0;
-  scenario1();
+  let myGame = new MyDeliciousGame(game);
 }, false);
 document.getElementById("schedablocks").addEventListener("click",_=>{
   if(document.querySelector("canvas"))document.querySelector("canvas").remove();
   if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
-  mainScenario = new main("music/through.mp3");
+  let chosen = Math.floor(Math.random() * songs.length);
+  mainScenario = new main(songs[chosen]);
 }, false);
 document.getElementById("home").addEventListener("click", _=>{
   location.replace("https://youtu.be/dQw4w9WgXcQ");
