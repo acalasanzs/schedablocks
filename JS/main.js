@@ -20,9 +20,9 @@ document.addEventListener("DOMContentLoaded",e=>{
 const game = document.getElementById("game");
 const audio = new Audio();
 var analyser, dataArray, stats;
-function main() {
+function main(audioSrc) {
   var noise = new SimplexNoise();
-  let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane, ball, clock, delta, interval;
+  let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane, ball, clock, delta, interval, particles;
   let menuText;
   let autoRotate = true;
   function makeRoughGround(mesh, distortionFr) {
@@ -177,8 +177,9 @@ function makeRoughBall(mesh, bassFr, treFr) {
                                             ██  ██  ██ ██    ██      ██ ██ ██      
                                             ██      ██  ██████  ███████ ██  ██████  
     */
-
-    audio.src = "music/nevermind.mp3";
+    particles = new Particles(scene, 150);
+    particles.init();
+    audio.src = audioSrc;
     audio.load()
     let played = document.addEventListener("click",_=>{
       audio.play()
@@ -221,7 +222,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
     });
 
     ball = new THREE.Mesh(icosahedronGeometry, lambertMaterial);
-    ball.position.set(4000,-150, 0);
+    ball.position.set(3000,-150, 0);
     ball.scale.set(20,20,20);
     scene.add(ball);
 
@@ -325,7 +326,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
 
     makeRoughGround(plane, modulate(upperAvgFr, 0, 1, 0.5, 4));
     makeRoughBall(ball, modulate(Math.pow(lowerMaxFr, 0.8), 0, 1, 0, 8), modulate(upperAvgFr, 0, 1, 0, 4));
-
+    particles.animate()
 
 
     delta += clock.getDelta();
@@ -529,27 +530,30 @@ function onWindowResize(camera, renderer) {
   renderer.setSize(game.clientWidth, game.clientHeight);
 }
 class Particles {
-  constructor(scene,howMany) {
+  constructor(scene,howMany, scale = 30, offset = 5) {
     this.scene = scene;
     this.howMany = howMany;
+    this.particle = new THREE.Object3D();
+    this.scale = scale;
+    this.offset = offset;
   }
   init() {
-      var particle = new THREE.Object3D();
-      this.scene.add(particle);
+      this.scene.add(this.particle);
 
       var geometry = new THREE.TetrahedronGeometry(2, 0);
       var material = new THREE.MeshNormalMaterial();
 
       for (var i = 0; i < this.howMany; i++) {
         var mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
-        mesh.position.multiplyScalar(90 + (Math.random() * 700));
+        mesh.scale.set(this.scale,this.scale,this.scale);
+        mesh.position.set(Math.random()*this.offset - 0.5*this.offset, Math.random()*this.offset - 0.5*this.offset, Math.random()*this.offset - 0.5*this.offset).normalize();
+        mesh.position.multiplyScalar(90*this.offset + (Math.random() * 700)*this.offset);
         mesh.rotation.set(Math.random() * 2, Math.random() * 2, Math.random() * 2);
-        particle.add(mesh);
+        this.particle.add(mesh);
       }
   }
   animate() {
-    particle.rotation.y +=.004;
+    this.particle.rotation.y +=.004;
   }
 }
 
@@ -569,7 +573,7 @@ document.getElementById("new").addEventListener("click",_=>{
 document.getElementById("schedablocks").addEventListener("click",_=>{
   if(document.querySelector("canvas"))document.querySelector("canvas").remove();
   if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
-  mainScenario = new main();
+  mainScenario = new main("music/through.mp3");
 }, false);
 document.getElementById("home").addEventListener("click", _=>{
   location.replace("https://youtu.be/dQw4w9WgXcQ");
