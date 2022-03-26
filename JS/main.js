@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded",e=>{
     });
 });
 const game = document.getElementById("game");
-
+const audio = new Audio();
 function main() {
   let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane;
   var analyser, dataArray, stats;
@@ -150,7 +150,6 @@ function main() {
                                             ██      ██  ██████  ███████ ██  ██████  
     */
 
- let audio = new Audio();
     audio.src = "music/nevermind.mp3";
     audio.load()
     let played = document.addEventListener("click",_=>{
@@ -253,7 +252,13 @@ function main() {
   }
   init()
 }
-
+function getStandardDeviation(array) {
+  const n = array.length;
+  const mean = array.reduce((a, b) => a + b) / n;
+  return Math.sqrt(
+    array.map((x) => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n
+  );
+}
 
 
 
@@ -455,11 +460,26 @@ class Particles {
 }
 
 
-main();
+//main();
 
 
-document.getElementById("new").addEventListener("click",_=>{if(document.querySelector("canvas"))document.querySelector("canvas").remove();scenario1()}, false);
-document.getElementById("schedablocks").addEventListener("click",_=>{if(document.querySelector("canvas"))document.querySelector("canvas").remove();main()}, false);
+document.getElementById("new").addEventListener("click",_=>{
+  if(document.querySelector("canvas"))document.querySelector("canvas").remove();
+  if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
+  let pause = setInterval(_=>{
+    audio.pause();
+    if (audio.paused)
+      clearInterval(pause);
+  },10)
+  audio.currentTime = 0;
+  scenario1();
+}, false);
+document.getElementById("schedablocks").addEventListener("click",_=>{
+  if(document.querySelector("canvas"))document.querySelector("canvas").remove();
+  if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
+
+  main();
+}, false);
 document.getElementById("home").addEventListener("click", _=>{
   location.replace("https://youtu.be/dQw4w9WgXcQ");
 })
