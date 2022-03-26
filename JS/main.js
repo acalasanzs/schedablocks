@@ -80,14 +80,14 @@ function makeRoughBall(mesh, bassFr, treFr) {
     game.appendChild(renderer.domElement);
     const materialArray = createMaterialArray();
   
-    skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
+    skyboxGeo = new THREE.BoxGeometry(10000*2, 10000*2, 10000*2);
     skybox = new THREE.Mesh(skyboxGeo, materialArray);
   
     var spriteMap = new THREE.TextureLoader().load( "images/menu/schedablocks.png" );
     var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
     menuText = new THREE.Sprite( spriteMaterial );
     menuText.position.set(0,2500,0);
-    menuText.scale.set(4000, 4000, 4000)
+    menuText.scale.set(4000, 4000, 4000);
     scene.add( menuText );
     menuText.name = "menuText";
   
@@ -205,6 +205,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
     plane.rotation.x = -0.5 * Math.PI;
     plane.position.set(0, -1250, 0);
     plane.scale.set(13,13, 13);
+    plane.name = "plane";
     scene.add(plane);
 
     const balltilesBaseColor = new ballTextureLoader.load('images/menu/ball/Metal_scratched_009_basecolor.jpg');
@@ -224,6 +225,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
     ball = new THREE.Mesh(icosahedronGeometry, lambertMaterial);
     ball.position.set(3000,-150, 0);
     ball.scale.set(20,20,20);
+    ball.name = "ball";
     scene.add(ball);
 
 
@@ -255,7 +257,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
                                             ██  ██  ██ ██    ██      ██ ██ ██      
                                             ██      ██  ██████  ███████ ██  ██████  
     */
-  
+    skybox.name = "skybox";
     scene.add(skybox);
 
 
@@ -284,6 +286,8 @@ function makeRoughBall(mesh, bassFr, treFr) {
     delta = 0;
     // 60 fps
     interval = 1 / 60;
+
+
 
 
 
@@ -340,20 +344,23 @@ function makeRoughBall(mesh, bassFr, treFr) {
    
   }
   function onWindowResize() {
-    camera.aspect = game.clientWidth / game.clientHeight;
-  
-    camera.updateProjectionMatrix();
-    renderer.setSize(game.clientWidth, game.clientHeight);
+    setTimeout(_=>{
+      camera.aspect = game.clientWidth / game.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(game.clientWidth, game.clientHeight);
+    },150);
   }
+  /* function getStandardDeviation(array) {
+    const n = array.length;
+    const mean = array.reduce((a, b) => a + b) / n;
+    return Math.sqrt(
+      array.map((x) => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n
+    );
+  } */
+
   init()
 }
-function getStandardDeviation(array) {
-  const n = array.length;
-  const mean = array.reduce((a, b) => a + b) / n;
-  return Math.sqrt(
-    array.map((x) => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n
-  );
-}
+
 
 
 
@@ -534,6 +541,7 @@ class Particles {
     this.scene = scene;
     this.howMany = howMany;
     this.particle = new THREE.Object3D();
+    this.particle.name = "particle";
     this.scale = scale;
     this.offset = offset;
   }
