@@ -22,7 +22,7 @@ const audio = new Audio();
 var analyser, dataArray, stats;
 function main() {
   var noise = new SimplexNoise();
-  let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane, ball;
+  let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane, ball, clock, delta, interval;
   let menuText;
   let autoRotate = true;
   function makeRoughGround(mesh, distortionFr) {
@@ -274,6 +274,18 @@ function makeRoughBall(mesh, bassFr, treFr) {
     stats.dom.id = "stats"
     document.body.appendChild( stats.dom );
 
+
+
+
+
+    // Limit FPS
+    clock = new THREE.Clock();
+    delta = 0;
+    // 60 fps
+    interval = 1 / 60;
+
+
+
     animate();
     
   };
@@ -316,11 +328,14 @@ function makeRoughBall(mesh, bassFr, treFr) {
 
 
 
-    
-    renderer.render(scene, camera);
+    delta += clock.getDelta();
+    if (delta > interval) {
+      renderer.render(scene, camera);
+
+      delta = delta % interval;
+    }
     stats.end();
     myReq = window.requestAnimationFrame(animate);
-    
    
   }
   function onWindowResize() {
