@@ -35,10 +35,6 @@ function main() {
     return materialArray;
   }
   function init() {
-    
-    stats = new Stats();
-    stats.showPanel( 1 );
-    document.body.appendChild( stats.dom );
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(
       55,
@@ -47,8 +43,7 @@ function main() {
       30000,
     );
     camera.position.set(5493, 3556, -4089);
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true,
-      logarithmicDepthBuffer: true });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true});
     renderer.setSize(game.clientWidth, game.clientHeight);
     renderer.setClearColor(0x574b90, 1);
     renderer.gammaOutput = true; 
@@ -154,22 +149,6 @@ function main() {
                                             ██  ██  ██ ██    ██      ██ ██ ██      
                                             ██      ██  ██████  ███████ ██  ██████  
     */
-    var noise = new SimplexNoise();
-    let audio = new Audio();
-    audio.src = "music/nevermind.mp3";
-    audio.load()
-    let played = document.addEventListener("click",_=>{
-      audio.play()
-      document.removeEventListener("click",played)
-    });
-    var context = new AudioContext();
-    var src = context.createMediaElementSource(audio);
-    analyser = context.createAnalyser();
-    src.connect(analyser);
-    analyser.connect(context.destination);
-    analyser.fftSize = 512;
-    var bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
 
 
     var planeGeometry = new THREE.PlaneGeometry(800, 800, 20, 20);
@@ -216,6 +195,12 @@ function main() {
     controls.minDistance = 700;
     controls.maxDistance = 20000;
     window.addEventListener('resize', onWindowResize, false);
+
+    stats = new Stats();
+    stats.showPanel(0);
+    stats.dom.id = "stats"
+    document.body.appendChild( stats.dom );
+
     animate();
     
   };
@@ -237,20 +222,21 @@ function main() {
   }
   function animate() {
     controls.autoRotate = autoRotate;
-    stats.begin();
     controls.update();
 
+    stats.begin();
 
 
 
 
 
 
-  
+
     
     renderer.render(scene, camera);
     stats.end();
     myReq = window.requestAnimationFrame(animate);
+    
    
   }
   function onWindowResize() {
