@@ -22,7 +22,7 @@ const audio = new Audio();
 var analyser, dataArray, stats;
 function main(audioSrc) {
   var noise = new SimplexNoise();
-  let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane, ball, clock, delta, interval, particles;
+  let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane, ball, clock, delta, interval, particles, target;
   let menuText;
   let autoRotate = true;
   function makeRoughGround(mesh, distortionFr) {
@@ -174,6 +174,11 @@ function makeRoughBall(mesh, bassFr, treFr) {
       audio.play()
       document.removeEventListener("click",played)
     });
+    target = document.createElement("div");
+    target.className = "sound blend";
+    target.textContent = "SOUND";
+    game.appendChild(target);
+    target.addEventListener("click", toggleAudio, false);
     const ballTextureLoader = new THREE.TextureLoader();
     const balltilesHeightMap = new ballTextureLoader.load('images/menu/ball/Metal_scratched_009_height.png');
     const balltilesRoughnessMap = new ballTextureLoader.load('images/menu/ball/Metal_scratched_009_roughness.jpg');
@@ -344,6 +349,23 @@ function makeRoughBall(mesh, bassFr, treFr) {
       camera.updateProjectionMatrix();
       renderer.setSize(game.clientWidth, game.clientHeight);
     },150);
+  }
+  function toggleAudio(){
+    if (null === audio || audio.readyState === audio.HAVE_NOTHING) return;
+    
+    if(!audio.paused && !audio.ended) {
+        let interval = setInterval(() => {
+          audio.pause();
+          if(audio.paused) clearInterval(interval);
+          target.textContent = "MUTED";
+          target.style.color = "#fab1a0";
+        }, 100);
+    }
+    else if (audio.paused) {
+        audio.play();
+        target.textContent = "SOUND";
+        target.style = "";
+    }
   }
   /* function getStandardDeviation(array) {
     const n = array.length;
@@ -545,6 +567,11 @@ class MyDeliciousGame {
     game.appendChild(this.renderer.domElement);
     console.log(game)
     this.canvas = this.renderer.domElement;
+    
+    window.addEventListener("resize", _=>{
+      setTimeout(this.windowResize,150);
+    });
+
   }
   windowResize() {
 
