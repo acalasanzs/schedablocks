@@ -30,8 +30,8 @@ function loadFile(filename) {
 
 const game = document.getElementById("game");
 const audio = new Audio();
-var analyser, dataArray, stats, target;
-function main(audioSrc) {
+var analyser, dataArray, stats, target, audioSrc;
+function main() {
   var noise = new SimplexNoise();
   let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane, ball, clock, delta, interval, particles;
   let menuText;
@@ -177,24 +177,9 @@ function makeRoughBall(mesh, bassFr, treFr) {
                                             ██  ██  ██ ██    ██      ██ ██ ██      
                                             ██      ██  ██████  ███████ ██  ██████  
     */
-    target = document.createElement("div");
-    target.className = "sound blend";
     particles = new Particles(scene, 150);
     particles.init();
-    if (audio.src.length == 0) {
-      audio.src = audioSrc;
-      audio.loop = true;
-      audio.load();
-      initAudio();
-    }else if (!audio.paused){
-      target.textContent = "SOUND";
-    }else{
-      target.textContent = "MUTED";
-      target.style.color = "#fab1a0";
-    }
-    
-    game.appendChild(target);
-    target.addEventListener("click", toggleAudio, false);
+    initAudioButton(game);
     const ballTextureLoader = new THREE.TextureLoader();
     const balltilesHeightMap = new ballTextureLoader.load('images/menu/ball/Metal_scratched_009_height.png');
     const balltilesRoughnessMap = new ballTextureLoader.load('images/menu/ball/Metal_scratched_009_roughness.jpg');
@@ -445,7 +430,23 @@ function makeRoughBall(mesh, bassFr, treFr) {
 }
 
 
-
+function initAudioButton(game) {
+  target = document.createElement("div");
+  target.className = "sound blend";
+  game.appendChild(target);
+  if (audio.src.length == 0) {
+    audio.src = audioSrc;
+    audio.loop = true;
+    audio.load();
+    initAudio();
+  }else if (!audio.paused){
+    target.textContent = "SOUND";
+  }else{
+    target.textContent = "MUTED";
+    target.style.color = "#fab1a0";
+  }
+  target.addEventListener("click", toggleAudio, false);
+}
 
 
 
@@ -515,6 +516,7 @@ function initAudio() {
 
 class MyDeliciousGame {
   constructor(game) {
+    initAudioButton(game);
     this.scene = new THREE.Scene();
     this.renderer = new THREE.WebGLRenderer({antialias: true});
     this.renderer.setSize(game.clientWidth, game.clientHeight);
@@ -820,6 +822,7 @@ class Particles {
 
 let mainScenario;
 const songs = ["music/head.mp3","music/nevermind.mp3","music/through.mp3","music/weekend.mp3","music/nandemonaiya.mp3","music/faking.mp3","music/older.mp3","music/notsobad.mp3","music/monogatari.mp3","music/bakamitai.mp3","music/levels.mp3","music/toby.mp3","music/crush.mp3"];
+audioSrc = songs[Math.floor(Math.random() * songs.length)];
 document.getElementById("new").addEventListener("click",_=>{
   if(document.querySelector("canvas"))document.querySelector("canvas").remove();
   if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
@@ -828,8 +831,7 @@ document.getElementById("new").addEventListener("click",_=>{
 document.getElementById("schedablocks").addEventListener("click",_=>{
   if(document.querySelector("canvas"))document.querySelector("canvas").remove();
   game.innerHTML = "";
-  let chosen = Math.floor(Math.random() * songs.length);
-  mainScenario = new main(songs[chosen]);
+  mainScenario = new main();
 }, false);
 document.getElementById("home").addEventListener("click", _=>{
   location.replace("https://youtu.be/dQw4w9WgXcQ");
