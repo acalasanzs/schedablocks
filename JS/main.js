@@ -210,7 +210,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
 
     var icosahedronGeometry = new THREE.IcosahedronGeometry(10, 4);
     var lambertMaterial = new THREE.MeshStandardMaterial({
-        map: balltilesBaseColor,
+        aoMap: balltilesBaseColor,
         normalMap: balltilesNormalMap,
         displacementMap: balltilesHeightMap,
         displacementScale: 1,
@@ -663,8 +663,18 @@ THREE.FirstPersonControls = function ( camera, MouseMoveSensitivity = 0.002, spe
 
 
 function MyDeliciousGame() {
+  var plasmaBalls = [];
+  var speed = 50;
+  var disparado = new THREE.Clock();
+  var disparadoDelta = 0;
+  var clock = new THREE.Clock();
+  var delta = 0;
+  const ballTextureLoader = new THREE.TextureLoader();
+  const balltilesHeightMap = new ballTextureLoader.load('images/menu/ball/Metal_scratched_009_height.png');
+  const balltilesRoughnessMap = new ballTextureLoader.load('images/menu/ball/Metal_scratched_009_roughness.jpg');
+  const balltilesAmbientOcclusionMap = new ballTextureLoader.load('images/menu/ball/Metal_scratched_009_ambientOcclusion.jpg');
   const skyboxImagepaths = ["images/game/front.png", "images/game/back.png", "images/game/up.png", "images/game/down.png", "images/game/right.png", "images/game/left.png",];
-  var camera, scene, renderer, controls, raycaster, arrow, world;
+  var camera, scene, renderer, controls, raycaster, world, emitter;
   const sidebar = document.getElementById("sidebar");
   function init() {
     let grayScreen = document.createElement("div");
@@ -679,7 +689,6 @@ function MyDeliciousGame() {
     world = new THREE.Group();
     
     raycaster = new THREE.Raycaster(camera.getWorldPosition(new THREE.Vector3()), camera.getWorldDirection(new THREE.Vector3()));
-    arrow = new THREE.ArrowHelper(camera.getWorldDirection(new THREE.Vector3()), camera.getWorldPosition(new THREE.Vector3()), 3, 0x000000 );
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color( 0xffcccc );
@@ -847,7 +856,6 @@ function MyDeliciousGame() {
 
     // 3Dモデル用テクスチャ画像の読込
     var loader = new THREE.GLTFLoader();
-  
     // Load a glTF resource
     loader.load(
         // resource URL
@@ -864,6 +872,9 @@ function MyDeliciousGame() {
                 }
                 mesh.position.set(2, -1, -2.5);
                 camera.add( mesh );
+                emitter = new THREE.Object3D();
+                emitter.position.set(2, -1, -5);
+                camera.add(emitter);
     
                 //scene.add( gltf.scene );
 
@@ -903,13 +914,20 @@ function MyDeliciousGame() {
 
 
     window.addEventListener("resize", _=>{
-      setTimeout(windowResize,250);
+      setTimeout(onWindowResize,250);
     });
   }
   function shoot() {
-    let plasmaBall = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 4), new THREE.MeshBasicMaterial({
-      color: "aqua"
-    }));
+    var icosahedronGeometry = new THREE.SphereGeometry(0.5, 8, 4);
+    var standardMaterial = new THREE.MeshStandardMaterial({
+        color: "aqua",
+        displacementMap: balltilesHeightMap,
+        displacementScale: 1,
+        roughnessMap: balltilesRoughnessMap,
+        roughness: 1,
+        aoMap: balltilesAmbientOcclusionMap
+    });
+    let plasmaBall = new THREE.Mesh(icosahedronGeometry, standardMaterial);
     plasmaBall.position.copy(emitter.getWorldPosition()); // start position - the tip of the weapon
     plasmaBall.quaternion.copy(camera.quaternion); // apply camera's quaternion
     scene.add(plasmaBall);
@@ -922,14 +940,17 @@ function MyDeliciousGame() {
       controls.update();
   
       raycaster.set(camera.getWorldPosition(new THREE.Vector3()), camera.getWorldDirection(new THREE.Vector3()));
-      scene.remove ( arrow );
-      arrow = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 5, 0x000000 );
-      scene.add( arrow );
-  
+      delta = clock.getDelta();
+      plasmaBalls.forEach(b => {
+      b.translateZ(-speed * delta); // move along the local z-axis
+      });
       if (controls.click === true) {
-        
+        disparadoDelta = disparado.getDelta();
+        if(disparadoDelta > 0.1){
+          shoot();
+        }
         var intersects = raycaster.intersectObjects(world.children);
-  
+        
         if ( intersects.length > 0 ) {
           var intersect = intersects[ 0 ];
           makeParticles(scene,intersect.point);
