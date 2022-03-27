@@ -25,13 +25,22 @@ function loadFile(filename) {
       resolve(data);
     });
   });
-}
+};
 
 
 const game = document.getElementById("game");
 const audio = new Audio();
 var analyser, dataArray, stats, target, audioSrc;
+function createMaterialArray(skyboxImagepaths) {
+  const materialArray = skyboxImagepaths.map(image => {
+    let texture = new THREE.TextureLoader().load(image);
+
+    return new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide});
+  });
+  return materialArray;
+}
 function main() {
+  const skyboxImagepaths = ["images/menu/front.png", "images/menu/back.png", "images/menu/up.png", "images/menu/down.png", "images/menu/right.png", "images/menu/left.png",];
   var noise = new SimplexNoise();
   let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane, ball, clock, delta, interval, particles;
   let menuText;
@@ -49,28 +58,19 @@ function main() {
     mesh.geometry.computeFaceNormals();
 }
 function makeRoughBall(mesh, bassFr, treFr) {
-  mesh.geometry.vertices.forEach(function (vertex, i) {
-      var offset = mesh.geometry.parameters.radius;
-      var amp = 7;
-      var time = window.performance.now();
-      vertex.normalize();
-      var rf = 0.00001;
-      var distance = (offset + bassFr ) + noise.noise3D(vertex.x + time *rf*7, vertex.y +  time*rf*8, vertex.z + time*rf*9) * amp * treFr;
-      vertex.multiplyScalar(distance);
-  });
-  mesh.geometry.verticesNeedUpdate = true;
-  mesh.geometry.normalsNeedUpdate = true;
-  mesh.geometry.computeVertexNormals();
-  mesh.geometry.computeFaceNormals();
-}
-  function createMaterialArray() {
-    const skyboxImagepaths = ["images/menu/front.png", "images/menu/back.png", "images/menu/up.png", "images/menu/down.png", "images/menu/right.png", "images/menu/left.png",];
-    const materialArray = skyboxImagepaths.map(image => {
-      let texture = new THREE.TextureLoader().load(image);
-  
-      return new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide});
+    mesh.geometry.vertices.forEach(function (vertex, i) {
+        var offset = mesh.geometry.parameters.radius;
+        var amp = 7;
+        var time = window.performance.now();
+        vertex.normalize();
+        var rf = 0.00001;
+        var distance = (offset + bassFr ) + noise.noise3D(vertex.x + time *rf*7, vertex.y +  time*rf*8, vertex.z + time*rf*9) * amp * treFr;
+        vertex.multiplyScalar(distance);
     });
-    return materialArray;
+    mesh.geometry.verticesNeedUpdate = true;
+    mesh.geometry.normalsNeedUpdate = true;
+    mesh.geometry.computeVertexNormals();
+    mesh.geometry.computeFaceNormals();
   }
   function init() {
     scene = new THREE.Scene();
@@ -90,7 +90,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
       document.querySelector("canvas").remove()
     }
     game.appendChild(renderer.domElement);
-    const materialArray = createMaterialArray();
+    const materialArray = createMaterialArray(skyboxImagepaths);
   
     skyboxGeo = new THREE.BoxGeometry(10000*2, 10000*2, 10000*2);
     skybox = new THREE.Mesh(skyboxGeo, materialArray);
@@ -660,6 +660,7 @@ THREE.FirstPersonControls = function ( camera, MouseMoveSensitivity = 0.002, spe
 
 
 function MyDeliciousGame() {
+  const skyboxImagepaths = ["images/game/front.png", "images/game/back.png", "images/game/up.png", "images/game/down.png", "images/game/right.png", "images/game/left.png",];
   var camera, scene, renderer, controls, raycaster, arrow, world;
 
   function init() {
@@ -668,7 +669,7 @@ function MyDeliciousGame() {
 
     camera = new THREE.PerspectiveCamera( 75, game.clientWidth/ game.clientHeight, 1, 3000 );
     world = new THREE.Group();
-  
+    
     raycaster = new THREE.Raycaster(camera.getWorldPosition(new THREE.Vector3()), camera.getWorldDirection(new THREE.Vector3()));
     arrow = new THREE.ArrowHelper(camera.getWorldDirection(new THREE.Vector3()), camera.getWorldPosition(new THREE.Vector3()), 3, 0x000000 );
 
@@ -718,31 +719,64 @@ function MyDeliciousGame() {
     }
     window.addEventListener( 'resize', onWindowResize, false );
 
-    var light = new THREE.HemisphereLight( 0xeeeeff, 0x777788, 0.75 );
+
+    var dirLight = new THREE.SpotLight( 0xffffff, 1, 0.0, 180.0);
+    dirLight.color.setHSL( 0.1, 1, 0.95 );
+    dirLight.position.set(-1000, 2000, 2000);
+    dirLight.castShadow = true;
+    scene.add( dirLight );
+
+
+    var dirLight2 = new THREE.SpotLight( 0xffffff, .6, 0.0, 180.0);
+    dirLight2.color.setHSL( 0.1, 1, 0.95 );
+    dirLight2.position.set(-1000, 2000, -2000);
+    dirLight2.castShadow = true;
+    scene.add( dirLight );
+
+
+    var light = new THREE.HemisphereLight( 0xeeeeff, 0x777788, 0.6 );
     light.position.set( 0, 100, 0.4 );
     scene.add( light );
-
-    var dirLight = new THREE.SpotLight( 0xffffff, .5, 0.0, 180.0);
-    dirLight.color.setHSL( 0.1, 1, 0.95 );
-    dirLight.position.set(0, 300, 100);
-    dirLight.castShadow = true;
-    dirLight.lookAt(new THREE.Vector3());
-    scene.add( dirLight );
     
     dirLight.shadow.mapSize.width = 4096;
     dirLight.shadow.mapSize.height = 4096;
     dirLight.shadow.camera.far = 3000;
 
-    //var dirLightHeper = new THREE.SpotLightHelper( dirLight, 10 );
-    //scene.add( dirLightHeper );
+    var ambient = new THREE.AmbientLight( 0x111111 );
+    scene.add( ambient );
 
     controls = new THREE.FirstPersonControls( camera );
     scene.add( controls.getObject() );
 
     // floor
+    const ballTextureLoader = new THREE.TextureLoader();
+    const balltilesHeightMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_height.png');
+    const balltilesNormalMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_normal.jpg');
+    const balltilesColorMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_basecolor.jpg');
+    const balltilesRoughnessMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_roughness.jpg');
+    const balltilesAmbientOcclusionMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_ambientOcclusion.jpg');
+    [balltilesHeightMap, balltilesNormalMap, balltilesColorMap, balltilesRoughnessMap, balltilesAmbientOcclusionMap].forEach(texture =>{
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.x = 50;
+      texture.repeat.y = 50;
+
+    })
+    balltilesHeightMap.offset.set(.001,.001,.001);
+    balltilesNormalMap.offset.set(.001,.001,.001);
+    balltilesRoughnessMap.offset.set(.10,.10,.10);
+    balltilesAmbientOcclusionMap.offset.set(.10,.10,.10);
 
     var floorGeometry = new THREE.PlaneBufferGeometry( 2000, 2000, 100, 100 );
-    var floorMaterial = new THREE.MeshLambertMaterial();
+    var floorMaterial = new THREE.MeshStandardMaterial({
+      aoMap: balltilesColorMap,
+      normalMap: balltilesNormalMap,
+      displacementMap: balltilesHeightMap,
+      roughnessMap: balltilesRoughnessMap,
+      roughness: 1,
+      aoMap: balltilesAmbientOcclusionMap,
+      side: THREE.DoubleSide
+  });
     floorMaterial.color.setHSL( 0.095, 1, 0.75 );
 
     var floor = new THREE.Mesh( floorGeometry, floorMaterial );
@@ -775,8 +809,11 @@ function MyDeliciousGame() {
     
     scene.add( world );
     game.appendChild(renderer.domElement);
-
-
+    const materialArray = createMaterialArray(skyboxImagepaths);
+  
+    skyboxGeo = new THREE.BoxGeometry(2000, 2000, 2000);
+    skybox = new THREE.Mesh(skyboxGeo, materialArray);
+    scene.add(skybox)
 
 
     window.addEventListener("resize", _=>{
