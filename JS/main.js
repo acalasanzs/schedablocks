@@ -177,7 +177,9 @@ function makeRoughBall(mesh, bassFr, treFr) {
                                             ██  ██  ██ ██    ██      ██ ██ ██      
                                             ██      ██  ██████  ███████ ██  ██████  
     */
-    particles = new Particles(scene, 150);
+
+
+    particles = new Particles(scene, 150, 30, 5);
     particles.init();
     initAudioButton(game);
     const ballTextureLoader = new THREE.TextureLoader();
@@ -291,70 +293,6 @@ function makeRoughBall(mesh, bassFr, treFr) {
     start.scale.set(1890*3,250*3,1);
     scene.add( start );
     start.name = "start";
-
-
-    /* 
- █     █░ ▄▄▄     ▄▄▄█████▓▓█████  ██▀███       ██████  ██░ ██  ▄▄▄      ▓█████▄ ▓█████  ██▀███    ██████    
-▓█░ █ ░█░▒████▄   ▓  ██▒ ▓▒▓█   ▀ ▓██ ▒ ██▒   ▒██    ▒ ▓██░ ██▒▒████▄    ▒██▀ ██▌▓█   ▀ ▓██ ▒ ██▒▒██    ▒    
-▒█░ █ ░█ ▒██  ▀█▄ ▒ ▓██░ ▒░▒███   ▓██ ░▄█ ▒   ░ ▓██▄   ▒██▀▀██░▒██  ▀█▄  ░██   █▌▒███   ▓██ ░▄█ ▒░ ▓██▄      
-░█░ █ ░█ ░██▄▄▄▄██░ ▓██▓ ░ ▒▓█  ▄ ▒██▀▀█▄       ▒   ██▒░▓█ ░██ ░██▄▄▄▄██ ░▓█▄   ▌▒▓█  ▄ ▒██▀▀█▄    ▒   ██▒   
-░░██▒██▓  ▓█   ▓██▒ ▒██▒ ░ ░▒████▒░██▓ ▒██▒   ▒██████▒▒░▓█▒░██▓ ▓█   ▓██▒░▒████▓ ░▒████▒░██▓ ▒██▒▒██████▒▒   
-░ ▓░▒ ▒   ▒▒   ▓▒█░ ▒ ░░   ░░ ▒░ ░░ ▒▓ ░▒▓░   ▒ ▒▓▒ ▒ ░ ▒ ░░▒░▒ ▒▒   ▓▒█░ ▒▒▓  ▒ ░░ ▒░ ░░ ▒▓ ░▒▓░▒ ▒▓▒ ▒ ░   
-  ▒ ░ ░    ▒   ▒▒ ░   ░     ░ ░  ░  ░▒ ░ ▒░   ░ ░▒  ░ ░ ▒ ░▒░ ░  ▒   ▒▒ ░ ░ ▒  ▒  ░ ░  ░  ░▒ ░ ▒░░ ░▒  ░ ░   
-  ░   ░    ░   ▒    ░         ░     ░░   ░    ░  ░  ░   ░  ░░ ░  ░   ▒    ░ ░  ░    ░     ░░   ░ ░  ░  ░     
-    ░          ░  ░           ░  ░   ░              ░   ░  ░  ░      ░  ░   ░       ░  ░   ░           ░     
-                                                                          ░                                  
-    */
-
-    /* //Shader chuncks
-    loadFile('shaders/utils.glsl').then((utils) => {
-      THREE.ShaderChunck['utils'] = utils;
-
-      // Light direction
-      const light = [0.7559289460184544, 0.7559289460184544, -0.3779644730092272];
-
-      controls.panSpeed = 0.9;
-      controls.dynamicDampingFactor = 0.9;
-
-      // Ray caster
-      const raycaster = new THREE.Raycaster();
-      const mouse = new THREE.Vector2();
-      const targetgeometry = new THREE.PlaneGeometry(2, 2);
-      for (let vertex of targetgeometry.vertices) {
-        vertex.z = - vertex.y;
-        vertex.y = 0.;
-      }
-      const targetmesh = new THREE.Mesh(targetgeometry);
-
-      // Textures
-      const cubetextureloader = new THREE.CubeTextureLoader();
-
-      const textureCube = cubetextureloader.load([
-        'xpos.jpg', 'xneg.jpg',
-        'ypos.jpg', 'ypos.jpg',
-        'zpos.jpg', 'zneg.jpg',
-      ]);
-
-    });
-
-    const waterSimulation = new WaterSimulation();
-    const water = new Water();
-    const caustics = new Caustics(water.geometry);
-    scene.add(water.mesh);
-    const pool = new Pool(); */
-
-    /* 
- █     █░ ▄▄▄     ▄▄▄█████▓▓█████  ██▀███       ██████  ██░ ██  ▄▄▄      ▓█████▄ ▓█████  ██▀███    ██████    
-▓█░ █ ░█░▒████▄   ▓  ██▒ ▓▒▓█   ▀ ▓██ ▒ ██▒   ▒██    ▒ ▓██░ ██▒▒████▄    ▒██▀ ██▌▓█   ▀ ▓██ ▒ ██▒▒██    ▒    
-▒█░ █ ░█ ▒██  ▀█▄ ▒ ▓██░ ▒░▒███   ▓██ ░▄█ ▒   ░ ▓██▄   ▒██▀▀██░▒██  ▀█▄  ░██   █▌▒███   ▓██ ░▄█ ▒░ ▓██▄      
-░█░ █ ░█ ░██▄▄▄▄██░ ▓██▓ ░ ▒▓█  ▄ ▒██▀▀█▄       ▒   ██▒░▓█ ░██ ░██▄▄▄▄██ ░▓█▄   ▌▒▓█  ▄ ▒██▀▀█▄    ▒   ██▒   
-░░██▒██▓  ▓█   ▓██▒ ▒██▒ ░ ░▒████▒░██▓ ▒██▒   ▒██████▒▒░▓█▒░██▓ ▓█   ▓██▒░▒████▓ ░▒████▒░██▓ ▒██▒▒██████▒▒   
-░ ▓░▒ ▒   ▒▒   ▓▒█░ ▒ ░░   ░░ ▒░ ░░ ▒▓ ░▒▓░   ▒ ▒▓▒ ▒ ░ ▒ ░░▒░▒ ▒▒   ▓▒█░ ▒▒▓  ▒ ░░ ▒░ ░░ ▒▓ ░▒▓░▒ ▒▓▒ ▒ ░   
-  ▒ ░ ░    ▒   ▒▒ ░   ░     ░ ░  ░  ░▒ ░ ▒░   ░ ░▒  ░ ░ ▒ ░▒░ ░  ▒   ▒▒ ░ ░ ▒  ▒  ░ ░  ░  ░▒ ░ ▒░░ ░▒  ░ ░   
-  ░   ░    ░   ▒    ░         ░     ░░   ░    ░  ░  ░   ░  ░░ ░  ░   ▒    ░ ░  ░    ░     ░░   ░ ░  ░  ░     
-    ░          ░  ░           ░  ░   ░              ░   ░  ░  ░      ░  ░   ░       ░  ░   ░           ░     
-                                                                          ░                                  
-    */
 
 
 /* 
@@ -552,10 +490,8 @@ class Particles {
   }
   init() {
       this.scene.add(this.particle);
-
-      var geometry = new THREE.TetrahedronGeometry(2, 0);
       var material = new THREE.MeshNormalMaterial();
-
+      var geometry = new THREE.TetrahedronGeometry(2, 0);
       for (var i = 0; i < this.howMany; i++) {
         var mesh = new THREE.Mesh(geometry, material);
         mesh.scale.set(this.scale,this.scale,this.scale);
