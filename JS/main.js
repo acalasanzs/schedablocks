@@ -17,6 +17,17 @@ document.addEventListener("DOMContentLoaded",e=>{
       i++;
     });
 });
+function loadFile(filename) {
+  return new Promise((resolve, reject) => {
+    const loader = new THREE.FileLoader();
+
+    loader.load(filename, (data) => {
+      resolve(data);
+    });
+  });
+}
+
+
 const game = document.getElementById("game");
 const audio = new Audio();
 var analyser, dataArray, stats;
@@ -291,6 +302,74 @@ function makeRoughBall(mesh, bassFr, treFr) {
     scene.add( start );
     start.name = "start";
 
+
+    /* 
+ █     █░ ▄▄▄     ▄▄▄█████▓▓█████  ██▀███       ██████  ██░ ██  ▄▄▄      ▓█████▄ ▓█████  ██▀███    ██████    
+▓█░ █ ░█░▒████▄   ▓  ██▒ ▓▒▓█   ▀ ▓██ ▒ ██▒   ▒██    ▒ ▓██░ ██▒▒████▄    ▒██▀ ██▌▓█   ▀ ▓██ ▒ ██▒▒██    ▒    
+▒█░ █ ░█ ▒██  ▀█▄ ▒ ▓██░ ▒░▒███   ▓██ ░▄█ ▒   ░ ▓██▄   ▒██▀▀██░▒██  ▀█▄  ░██   █▌▒███   ▓██ ░▄█ ▒░ ▓██▄      
+░█░ █ ░█ ░██▄▄▄▄██░ ▓██▓ ░ ▒▓█  ▄ ▒██▀▀█▄       ▒   ██▒░▓█ ░██ ░██▄▄▄▄██ ░▓█▄   ▌▒▓█  ▄ ▒██▀▀█▄    ▒   ██▒   
+░░██▒██▓  ▓█   ▓██▒ ▒██▒ ░ ░▒████▒░██▓ ▒██▒   ▒██████▒▒░▓█▒░██▓ ▓█   ▓██▒░▒████▓ ░▒████▒░██▓ ▒██▒▒██████▒▒   
+░ ▓░▒ ▒   ▒▒   ▓▒█░ ▒ ░░   ░░ ▒░ ░░ ▒▓ ░▒▓░   ▒ ▒▓▒ ▒ ░ ▒ ░░▒░▒ ▒▒   ▓▒█░ ▒▒▓  ▒ ░░ ▒░ ░░ ▒▓ ░▒▓░▒ ▒▓▒ ▒ ░   
+  ▒ ░ ░    ▒   ▒▒ ░   ░     ░ ░  ░  ░▒ ░ ▒░   ░ ░▒  ░ ░ ▒ ░▒░ ░  ▒   ▒▒ ░ ░ ▒  ▒  ░ ░  ░  ░▒ ░ ▒░░ ░▒  ░ ░   
+  ░   ░    ░   ▒    ░         ░     ░░   ░    ░  ░  ░   ░  ░░ ░  ░   ▒    ░ ░  ░    ░     ░░   ░ ░  ░  ░     
+    ░          ░  ░           ░  ░   ░              ░   ░  ░  ░      ░  ░   ░       ░  ░   ░           ░     
+                                                                          ░                                  
+    */
+
+    //Shader chuncks
+    loadFile('shaders/utils.glsl').then((utils) => {
+      THREE.ShaderChunck['utils'] = utils;
+
+      // Light direction
+      const light = [0.7559289460184544, 0.7559289460184544, -0.3779644730092272];
+
+      controls.panSpeed = 0.9;
+      controls.dynamicDampingFactor = 0.9;
+
+      // Ray caster
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      const targetgeometry = new THREE.PlaneGeometry(2, 2);
+      for (let vertex of targetgeometry.vertices) {
+        vertex.z = - vertex.y;
+        vertex.y = 0.;
+      }
+      const targetmesh = new THREE.Mesh(targetgeometry);
+
+      // Textures
+      const cubetextureloader = new THREE.CubeTextureLoader();
+
+      const textureCube = cubetextureloader.load([
+        'xpos.jpg', 'xneg.jpg',
+        'ypos.jpg', 'ypos.jpg',
+        'zpos.jpg', 'zneg.jpg',
+      ]);
+
+    });
+
+    /* 
+ █     █░ ▄▄▄     ▄▄▄█████▓▓█████  ██▀███       ██████  ██░ ██  ▄▄▄      ▓█████▄ ▓█████  ██▀███    ██████    
+▓█░ █ ░█░▒████▄   ▓  ██▒ ▓▒▓█   ▀ ▓██ ▒ ██▒   ▒██    ▒ ▓██░ ██▒▒████▄    ▒██▀ ██▌▓█   ▀ ▓██ ▒ ██▒▒██    ▒    
+▒█░ █ ░█ ▒██  ▀█▄ ▒ ▓██░ ▒░▒███   ▓██ ░▄█ ▒   ░ ▓██▄   ▒██▀▀██░▒██  ▀█▄  ░██   █▌▒███   ▓██ ░▄█ ▒░ ▓██▄      
+░█░ █ ░█ ░██▄▄▄▄██░ ▓██▓ ░ ▒▓█  ▄ ▒██▀▀█▄       ▒   ██▒░▓█ ░██ ░██▄▄▄▄██ ░▓█▄   ▌▒▓█  ▄ ▒██▀▀█▄    ▒   ██▒   
+░░██▒██▓  ▓█   ▓██▒ ▒██▒ ░ ░▒████▒░██▓ ▒██▒   ▒██████▒▒░▓█▒░██▓ ▓█   ▓██▒░▒████▓ ░▒████▒░██▓ ▒██▒▒██████▒▒   
+░ ▓░▒ ▒   ▒▒   ▓▒█░ ▒ ░░   ░░ ▒░ ░░ ▒▓ ░▒▓░   ▒ ▒▓▒ ▒ ░ ▒ ░░▒░▒ ▒▒   ▓▒█░ ▒▒▓  ▒ ░░ ▒░ ░░ ▒▓ ░▒▓░▒ ▒▓▒ ▒ ░   
+  ▒ ░ ░    ▒   ▒▒ ░   ░     ░ ░  ░  ░▒ ░ ▒░   ░ ░▒  ░ ░ ▒ ░▒░ ░  ▒   ▒▒ ░ ░ ▒  ▒  ░ ░  ░  ░▒ ░ ▒░░ ░▒  ░ ░   
+  ░   ░    ░   ▒    ░         ░     ░░   ░    ░  ░  ░   ░  ░░ ░  ░   ▒    ░ ░  ░    ░     ░░   ░ ░  ░  ░     
+    ░          ░  ░           ░  ░   ░              ░   ░  ░  ░      ░  ░   ░       ░  ░   ░           ░     
+                                                                          ░                                  
+    */
+
+
+/* 
+ █████╗ ███╗   ██╗██╗███╗   ███╗ █████╗ ████████╗███████╗
+██╔══██╗████╗  ██║██║████╗ ████║██╔══██╗╚══██╔══╝██╔════╝
+███████║██╔██╗ ██║██║██╔████╔██║███████║   ██║   █████╗  
+██╔══██║██║╚██╗██║██║██║╚██╔╝██║██╔══██║   ██║   ██╔══╝  
+██║  ██║██║ ╚████║██║██║ ╚═╝ ██║██║  ██║   ██║   ███████╗
+╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝
+*/
+
     animate();
     
   };
@@ -338,8 +417,9 @@ function makeRoughBall(mesh, bassFr, treFr) {
       renderer.render(scene, camera);
 
       delta = delta % interval;
+      stats.end();
     }
-    stats.end();
+    
     myReq = window.requestAnimationFrame(animate);
    
   }
@@ -387,6 +467,22 @@ function makeRoughBall(mesh, bassFr, treFr) {
 
 
 
+/* 
+ ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄       ▄▄  ▄▄▄▄▄▄▄▄▄▄▄ 
+▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░▌     ▐░░▌▐░░░░░░░░░░░▌
+▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀█░▌▐░▌░▌   ▐░▐░▌▐░█▀▀▀▀▀▀▀▀▀ 
+▐░▌          ▐░▌       ▐░▌▐░▌▐░▌ ▐░▌▐░▌▐░▌          
+▐░▌ ▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄█░▌▐░▌ ▐░▐░▌ ▐░▌▐░█▄▄▄▄▄▄▄▄▄ 
+▐░▌▐░░░░░░░░▌▐░░░░░░░░░░░▌▐░▌  ▐░▌  ▐░▌▐░░░░░░░░░░░▌
+▐░▌ ▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌▐░▌   ▀   ▐░▌▐░█▀▀▀▀▀▀▀▀▀ 
+▐░▌       ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░▌          
+▐░█▄▄▄▄▄▄▄█░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░█▄▄▄▄▄▄▄▄▄ 
+▐░░░░░░░░░░░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░░░░░░░░░░░▌
+ ▀▀▀▀▀▀▀▀▀▀▀  ▀         ▀  ▀         ▀  ▀▀▀▀▀▀▀▀▀▀▀ 
+      ╔═╗╦  ╔╗ ╔═╗╦═╗╔╦╗  ╦  ╔═╗╦  ╔═╗╦═╗ ╦
+      ╠═╣║  ╠╩╗║╣ ╠╦╝ ║   ║  ╠═╣║  ║╣ ║╔╩╦╝
+      ╩ ╩╩═╝╚═╝╚═╝╩╚═ ╩   ╩  ╩ ╩╩═╝╚═╝╩╩ ╚═
+*/
 
 
 
@@ -398,159 +494,6 @@ function makeRoughBall(mesh, bassFr, treFr) {
 
 
 
-
-/* function scenario1() {
-  const renderer = new THREE.WebGLRenderer({antialias: true});
-  renderer.setSize(game.clientWidth, game.clientHeight);
-  const fov = 60;
-  const aspect = game.clientWidth/ game.clientHeight;  // the canvas default
-  const near = 0.1;
-  const far = 200;
-  const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-  camera.position.z = 30;
-  window.addEventListener("resize", _=>{
-    onWindowResize(camera, renderer);
-  });
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color('white');
-  game.appendChild(renderer.domElement);
-  const canvas = renderer.domElement;
-
-  // put the camera on a pole (parent it to an object)
-  // so we can spin the pole to move the camera around the scene
-  const cameraPole = new THREE.Object3D();
-  scene.add(cameraPole);
-  cameraPole.add(camera);
-
-  {
-    const color = 0xFFFFFF;
-    const intensity = 1;
-    const light = new THREE.DirectionalLight(color, intensity);
-    light.position.set(-1, 2, 4);
-    camera.add(light);
-  }
-
-  const boxWidth = 1;
-  const boxHeight = 1;
-  const boxDepth = 1;
-  const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
-
-  function rand(min, max) {
-    if (max === undefined) {
-      max = min;
-      min = 0;
-    }
-    return min + (max - min) * Math.random();
-  }
-
-  function randomColor() {
-    return `hsl(${rand(360) | 0}, ${rand(50, 100) | 0}%, 50%)`;
-  }
-
-  const numObjects = 100;
-  for (let i = 0; i < numObjects; ++i) {
-    const material = new THREE.MeshPhongMaterial({
-      color: randomColor(),
-    });
-
-    const cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
-
-    cube.position.set(rand(-20, 20), rand(-20, 20), rand(-20, 20));
-    cube.rotation.set(rand(Math.PI), rand(Math.PI), 0);
-    cube.scale.set(rand(3, 6), rand(3, 6), rand(3, 6));
-  }
-
-  class PickHelper {
-    constructor() {
-      this.raycaster = new THREE.Raycaster();
-      this.pickedObject = null;
-      this.pickedObjectSavedColor = 0;
-    }
-    pick(normalizedPosition, scene, camera, time) {
-      // restore the color if there is a picked object
-      if (this.pickedObject) {
-        this.pickedObject.material.emissive.setHex(this.pickedObjectSavedColor);
-        this.pickedObject = undefined;
-      }
-
-      // cast a ray through the frustum
-      this.raycaster.setFromCamera(normalizedPosition, camera);
-      // get the list of objects the ray intersected
-      const intersectedObjects = this.raycaster.intersectObjects(scene.children);
-      if (intersectedObjects.length) {
-        // pick the first object. It's the closest one
-        this.pickedObject = intersectedObjects[0].object;
-        // save its color
-        this.pickedObjectSavedColor = this.pickedObject.material.emissive.getHex();
-        // set its emissive color to flashing red/yellow
-        this.pickedObject.material.emissive.setHex((time * 8) % 2 > 1 ? 0xFFFF00 : 0xFF0000);
-      }
-    }
-  }
-
-  const pickPosition = {x: 0, y: 0};
-  const pickHelper = new PickHelper();
-  clearPickPosition();
-
-  function render(time) {
-    time *= 0.001;  // convert to seconds;
-
-    cameraPole.rotation.y = time * .1;
-
-    pickHelper.pick(pickPosition, scene, camera, time);
-
-    renderer.render(scene, camera);
-
-    requestAnimationFrame(render);
-  }
-  requestAnimationFrame(render);
-
-  function getCanvasRelativePosition(event) {
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: (event.clientX - rect.left) * canvas.width  / rect.width,
-      y: (event.clientY - rect.top ) * canvas.height / rect.height,
-    };
-  }
-
-  function setPickPosition(event) {
-    const pos = getCanvasRelativePosition(event);
-    pickPosition.x = (pos.x / canvas.width ) *  2 - 1;
-    pickPosition.y = (pos.y / canvas.height) * -2 + 1;  // note we flip Y
-  }
-
-  function clearPickPosition() {
-    // unlike the mouse which always has a position
-    // if the user stops touching the screen we want
-    // to stop picking. For now we just pick a value
-    // unlikely to pick something
-    pickPosition.x = -100000;
-    pickPosition.y = -100000;
-  }
-  window.addEventListener('mousemove', setPickPosition);
-  window.addEventListener('mouseout', clearPickPosition);
-  window.addEventListener('mouseleave', clearPickPosition);
-
-  window.addEventListener('touchstart', (event) => {
-    // prevent the window from scrolling
-    event.preventDefault();
-    setPickPosition(event.touches[0]);
-  }, {passive: false});
-
-  window.addEventListener('touchmove', (event) => {
-    setPickPosition(event.touches[0]);
-  });
-
-  window.addEventListener('touchend', clearPickPosition);
-  
-}
-function onWindowResize(camera, renderer) {
-  camera.aspect = game.clientWidth / game.clientHeight;
-
-  camera.updateProjectionMatrix();
-  renderer.setSize(game.clientWidth, game.clientHeight);
-} */
 
 class MyDeliciousGame {
   constructor(game) {
@@ -577,6 +520,213 @@ class MyDeliciousGame {
 
   }
 }
+class WaterSimulation {
+
+  constructor() {
+    this._camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 2000);
+
+    this._geometry = new THREE.PlaneBufferGeometry(2, 2);
+
+    this._textureA = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
+    this._textureB = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
+    this.texture = this._textureA;
+
+    const shadersPromises = [
+      loadFile('shaders/simulation/vertex.glsl'),
+      loadFile('shaders/simulation/drop_fragment.glsl'),
+      loadFile('shaders/simulation/normal_fragment.glsl'),
+      loadFile('shaders/simulation/update_fragment.glsl'),
+    ];
+
+    this.loaded = Promise.all(shadersPromises)
+        .then(([vertexShader, dropFragmentShader, normalFragmentShader, updateFragmentShader]) => {
+      const dropMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            center: { value: [0, 0] },
+            radius: { value: 0 },
+            strength: { value: 0 },
+            texture: { value: null },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: dropFragmentShader,
+      });
+
+      const normalMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            delta: { value: [1 / 256, 1 / 256] },  // TODO: Remove this useless uniform and hardcode it in shaders?
+            texture: { value: null },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: normalFragmentShader,
+      });
+
+      const updateMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            delta: { value: [1 / 256, 1 / 256] },  // TODO: Remove this useless uniform and hardcode it in shaders?
+            texture: { value: null },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: updateFragmentShader,
+      });
+
+      this._dropMesh = new THREE.Mesh(this._geometry, dropMaterial);
+      this._normalMesh = new THREE.Mesh(this._geometry, normalMaterial);
+      this._updateMesh = new THREE.Mesh(this._geometry, updateMaterial);
+    });
+  }
+
+  // Add a drop of water at the (x, y) coordinate (in the range [-1, 1])
+  addDrop(renderer, x, y, radius, strength) {
+    this._dropMesh.material.uniforms['center'].value = [x, y];
+    this._dropMesh.material.uniforms['radius'].value = radius;
+    this._dropMesh.material.uniforms['strength'].value = strength;
+
+    this._render(renderer, this._dropMesh);
+  }
+
+  stepSimulation(renderer) {
+    this._render(renderer, this._updateMesh);
+  }
+
+  updateNormals(renderer) {
+    this._render(renderer, this._normalMesh);
+  }
+
+  _render(renderer, mesh) {
+    // Swap textures
+    const oldTexture = this.texture;
+    const newTexture = this.texture === this._textureA ? this._textureB : this._textureA;
+
+    mesh.material.uniforms['texture'].value = oldTexture.texture;
+
+    renderer.setRenderTarget(newTexture);
+
+    // TODO Camera is useless here, what should be done?
+    renderer.render(mesh, this._camera);
+
+    this.texture = newTexture;
+  }
+
+}
+class Caustics {
+
+  constructor(lightFrontGeometry) {
+    this._camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 2000);
+
+    this._geometry = lightFrontGeometry;
+
+    this.texture = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.UNSIGNED_BYTE});
+
+    const shadersPromises = [
+      loadFile('shaders/caustics/vertex.glsl'),
+      loadFile('shaders/caustics/fragment.glsl')
+    ];
+
+    this.loaded = Promise.all(shadersPromises)
+        .then(([vertexShader, fragmentShader]) => {
+      const material = new THREE.RawShaderMaterial({
+        uniforms: {
+            light: { value: light },
+            water: { value: null },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      });
+
+      this._causticMesh = new THREE.Mesh(this._geometry, material);
+    });
+  }
+
+  update(renderer, waterTexture) {
+    this._causticMesh.material.uniforms['water'].value = waterTexture;
+
+    renderer.setRenderTarget(this.texture);
+    renderer.setClearColor(black, 0);
+    renderer.clear();
+
+    // TODO Camera is useless here, what should be done?
+    renderer.render(this._causticMesh, this._camera);
+  }
+
+}
+class Pool {
+
+  constructor() {
+    this._geometry = new THREE.BufferGeometry();
+    const vertices = new Float32Array([
+      -1, -1, -1,
+      -1, -1, 1,
+      -1, 1, -1,
+      -1, 1, 1,
+      1, -1, -1,
+      1, 1, -1,
+      1, -1, 1,
+      1, 1, 1,
+      -1, -1, -1,
+      1, -1, -1,
+      -1, -1, 1,
+      1, -1, 1,
+      -1, 1, -1,
+      -1, 1, 1,
+      1, 1, -1,
+      1, 1, 1,
+      -1, -1, -1,
+      -1, 1, -1,
+      1, -1, -1,
+      1, 1, -1,
+      -1, -1, 1,
+      1, -1, 1,
+      -1, 1, 1,
+      1, 1, 1
+    ]);
+    const indices = new Uint32Array([
+      0, 1, 2,
+      2, 1, 3,
+      4, 5, 6,
+      6, 5, 7,
+      12, 13, 14,
+      14, 13, 15,
+      16, 17, 18,
+      18, 17, 19,
+      20, 21, 22,
+      22, 21, 23
+    ]);
+
+    this._geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    this._geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+
+    const shadersPromises = [
+      loadFile('shaders/pool/vertex.glsl'),
+      loadFile('shaders/pool/fragment.glsl')
+    ];
+
+    this.loaded = Promise.all(shadersPromises)
+        .then(([vertexShader, fragmentShader]) => {
+      this._material = new THREE.RawShaderMaterial({
+        uniforms: {
+            light: { value: light },
+            tiles: { value: tiles },
+            water: { value: null },
+            causticTex: { value: null },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      });
+      this._material.side = THREE.FrontSide;
+
+      this._mesh = new THREE.Mesh(this._geometry, this._material);
+    });
+  }
+
+  draw(renderer, waterTexture, causticsTexture) {
+    this._material.uniforms['water'].value = waterTexture;
+    this._material.uniforms['causticTex'].value = causticsTexture;
+
+    renderer.render(this._mesh, camera);
+  }
+
+}
+
 class Particles {
   constructor(scene,howMany, scale = 30, offset = 5) {
     this.scene = scene;
@@ -608,7 +758,7 @@ class Particles {
 
 
 let mainScenario;
-const songs = ["music/bakamitai.mp3","music/head.mp3","music/nevermind.mp3","music/through.mp3","music/weekend.mp3","music/nandemonaiya.mp3","music/faking.mp3","music/older.mp3"];
+const songs = ["music/head.mp3","music/nevermind.mp3","music/through.mp3","music/weekend.mp3","music/nandemonaiya.mp3","music/faking.mp3","music/older.mp3","music/notsobad.mp3","music/monogatari.mp3","music/bakamitai.mp3","music/levels.mp3"];
 document.getElementById("new").addEventListener("click",_=>{
   if(document.querySelector("canvas"))document.querySelector("canvas").remove();
   if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
@@ -622,7 +772,7 @@ document.getElementById("new").addEventListener("click",_=>{
 }, false);
 document.getElementById("schedablocks").addEventListener("click",_=>{
   if(document.querySelector("canvas"))document.querySelector("canvas").remove();
-  if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
+  game.innerHTML = "";
   let chosen = Math.floor(Math.random() * songs.length);
   mainScenario = new main(songs[chosen]);
 }, false);
