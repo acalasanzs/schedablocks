@@ -676,6 +676,59 @@ function MyDeliciousGame() {
   const skyboxImagepaths = ["images/game/front.png", "images/game/back.png", "images/game/up.png", "images/game/down.png", "images/game/right.png", "images/game/left.png",];
   var camera, scene, renderer, controls, raycaster, world, emitter;
   const sidebar = document.getElementById("sidebar");
+
+
+  var sphereShape, sphereBody, world, physicsMaterial, walls=[], balls=[], ballMeshes=[], boxes=[], boxMeshes=[];
+
+  function initCannon(){
+    // Setup our world
+    world = new CANNON.World();
+    world.quatNormalizeSkip = 0;
+    world.quatNormalizeFast = false;
+
+    var solver = new CANNON.GSSolver();
+
+    world.defaultContactMaterial.contactEquationStiffness = 1e9;
+    world.defaultContactMaterial.contactEquationRelaxation = 4;
+
+    solver.iterations = 7;
+    solver.tolerance = 0.1;
+    var split = true;
+    if(split)
+        world.solver = new CANNON.SplitSolver(solver);
+    else
+        world.solver = solver;
+
+    world.gravity.set(0,-20,0);
+    world.broadphase = new CANNON.NaiveBroadphase();
+
+    // Create a slippery material (friction coefficient = 0.0)
+    physicsMaterial = new CANNON.Material("slipperyMaterial");
+    var physicsContactMaterial = new CANNON.ContactMaterial(physicsMaterial,
+                                                            physicsMaterial,
+                                                            0.0, // friction coefficient
+                                                            0.8  // restitution
+                                                            );
+    // We must add the contact materials to the world
+    world.addContactMaterial(physicsContactMaterial);
+
+    // Create a sphere
+    var mass = 5, radius = 1.3;
+    sphereShape = new CANNON.Sphere(radius);
+    sphereBody = new CANNON.Body({ mass: mass });
+    sphereBody.addShape(sphereShape);
+    sphereBody.position.set(0,5,0);
+    sphereBody.linearDamping = 0.9;
+    world.add(sphereBody);
+
+    // Create a plane
+    var groundShape = new CANNON.Plane();
+    var groundBody = new CANNON.Body({ mass: 0 });
+    groundBody.addShape(groundShape);
+    groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
+    world.add(groundBody);
+}
+
   function init() {
     let grayScreen = document.createElement("div");
     grayScreen.className = "gray";
@@ -771,6 +824,7 @@ function MyDeliciousGame() {
     dirLight.color.setHSL( 0.1, 1, 0.95 );
     dirLight.position.set(-1000, 2000, 2000);
     dirLight.castShadow = true;
+
     scene.add( dirLight );
 
 
@@ -830,28 +884,30 @@ function MyDeliciousGame() {
     floor.rotation.x = - Math.PI / 2;
     floor.receiveShadow = true;
     world.add(floor);
+    
 
-    // objects
-
-    var boxGeometry = new THREE.BoxBufferGeometry( 1, 1, 1 );
-    boxGeometry.translate( 0, 0.5, 0 );
-
-    for ( var i = 0; i < 500; i ++ ) {
-
-      var boxMaterial = new THREE.MeshStandardMaterial( { color: Math.random() * 0xffffff, flatShading: false, vertexColors: false } );
-
-      var mesh = new THREE.Mesh( boxGeometry, boxMaterial );
-      mesh.position.x = Math.random() * 1600 - 800;
-      mesh.position.y = 0;
-      mesh.position.z = Math.random() * 1600 - 800;
-      mesh.scale.x = 20;
-      mesh.scale.y = Math.random() * 80 + 10;
-      mesh.scale.z = 20;
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      mesh.updateMatrix();
-      mesh.matrixAutoUpdate = false;
-      world.add(mesh);
+    
+    for(var i=0; i<70; i++){
+        var Sx = (Math.random()-0.5)*20;
+        var Sy = (Math.random()-0.5)*200;
+        var boxMaterial = new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } );
+        var halfExtents = new CANNON.Vec3(Sx,Sy,Sx);
+        var boxShape = new CANNON.Box(halfExtents);
+        var boxGeometry = new THREE.BoxGeometry(halfExtents.x*2,halfExtents.y*2,halfExtents.z*2);
+        var x = Math.random() * 160*5 - 80*5;
+        var y = 0;
+        var z = Math.random() * 160*5 - 80*5;
+        var boxBody = new CANNON.Body({ mass: 5 });
+        boxBody.addShape(boxShape);
+        var boxMesh = new THREE.Mesh( boxGeometry, boxMaterial );
+        world.add(boxBody);
+        scene.add(boxMesh);
+        boxBody.position.set(x,y,z);
+        boxMesh.position.set(x,y,z);
+        boxMesh.castShadow = true;
+        boxMesh.receiveShadow = true;
+        boxes.push(boxBody);
+        boxMeshes.push(boxMesh);
     }
 
     // 3Dモデル用テクスチャ画像の読込
@@ -974,6 +1030,7 @@ function MyDeliciousGame() {
     renderer.setSize(game.clientWidth, game.clientHeight);
   }
 
+  initCannon()
   init()
   animate()
 }
