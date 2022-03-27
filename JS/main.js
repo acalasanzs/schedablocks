@@ -181,10 +181,18 @@ function makeRoughBall(mesh, bassFr, treFr) {
     target.className = "sound blend";
     particles = new Particles(scene, 150);
     particles.init();
-    audio.src = audioSrc;
-    audio.loop = true;
-    audio.load();
-    initAudio();
+    if (audio.src.length == 0) {
+      audio.src = audioSrc;
+      audio.loop = true;
+      audio.load();
+      initAudio();
+    }else if (!audio.paused){
+      target.textContent = "SOUND";
+    }else{
+      target.textContent = "MUTED";
+      target.style.color = "#fab1a0";
+    }
+    
     game.appendChild(target);
     target.addEventListener("click", toggleAudio, false);
     const ballTextureLoader = new THREE.TextureLoader();
@@ -815,12 +823,6 @@ const songs = ["music/head.mp3","music/nevermind.mp3","music/through.mp3","music
 document.getElementById("new").addEventListener("click",_=>{
   if(document.querySelector("canvas"))document.querySelector("canvas").remove();
   if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
-  let pause = setInterval(_=>{
-    if (!audio.paused) audio.pause();
-    if (audio.paused)
-      clearInterval(pause);
-  },10)
-  audio.currentTime = 0;
   let myGame = new MyDeliciousGame(game);
 }, false);
 document.getElementById("schedablocks").addEventListener("click",_=>{
