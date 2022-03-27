@@ -373,9 +373,12 @@ function initAudioButton(game) {
   target.className = "sound blend";
   game.appendChild(target);
   if (audio.src.length == 0) {
-    audio.src = audioSrc;
-    audio.loop = true;
+    audio.src = songs[Math.floor(Math.random() * songs.length)];
     audio.load();
+    audio.onended = () => {
+      audio.src = songs[Math.floor(Math.random() * songs.length)];
+      audio.play()
+    }
     initAudio();
   }else if (!audio.paused){
     target.textContent = "SOUND";
@@ -662,8 +665,13 @@ THREE.FirstPersonControls = function ( camera, MouseMoveSensitivity = 0.002, spe
 function MyDeliciousGame() {
   const skyboxImagepaths = ["images/game/front.png", "images/game/back.png", "images/game/up.png", "images/game/down.png", "images/game/right.png", "images/game/left.png",];
   var camera, scene, renderer, controls, raycaster, arrow, world;
-
+  const sidebar = document.getElementById("sidebar");
   function init() {
+    let grayScreen = document.createElement("div");
+    grayScreen.className = "gray";
+    grayScreen.textContent = "(CLICK)";
+    sidebar.classList.add("active");
+    game.appendChild(grayScreen);
     initAudioButton(game);
     var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
 
@@ -689,14 +697,22 @@ function MyDeliciousGame() {
       var pointerlockchange = function ( event ) {
         if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
           controls.enabled = true;
+          grayScreen.style.display = "none";
+          sidebar.classList.remove("active");
         } else {
           controls.enabled = false;
+          grayScreen.style.display = "block";
+          sidebar.classList.add("active");
         }
+      };
+      var pointerlockerror = function () {
+        grayScreen.style.display = 'none';
+        sidebar.classList.remove("active");
       };
       game.addEventListener("click", event => {
         element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
         if ( /Firefox/i.test( navigator.userAgent ) ) {
-          var fullscreenchange = function ( event ) {
+          var fullscreenchange = function () {
             if ( document.fullscreenElement === element || document.mozFullscreenElement === element || document.mozFullScreenElement === element ) {
               document.removeEventListener( 'fullscreenchange', fullscreenchange );
               document.removeEventListener( 'mozfullscreenchange', fullscreenchange );
@@ -714,6 +730,28 @@ function MyDeliciousGame() {
       document.addEventListener( 'pointerlockchange', pointerlockchange, false );
       document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
       document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
+      document.addEventListener( 'pointerlockerror', pointerlockerror, false );
+      document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
+      document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
+
+      grayScreen.addEventListener( 'click', function () {
+        element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
+        if ( /Firefox/i.test( navigator.userAgent ) ) {
+          var fullscreenchange = function ( event ) {
+            if ( document.fullscreenElement === element || document.mozFullscreenElement === element || document.mozFullScreenElement === element ) {
+              document.removeEventListener( 'fullscreenchange', fullscreenchange );
+              document.removeEventListener( 'mozfullscreenchange', fullscreenchange );
+              element.requestPointerLock();
+            }
+          };
+          document.addEventListener( 'fullscreenchange', fullscreenchange, false );
+          document.addEventListener( 'mozfullscreenchange', fullscreenchange, false );
+          element.requestFullscreen = element.requestFullscreen || element.mozRequestFullscreen || element.mozRequestFullScreen || element.webkitRequestFullscreen;
+          element.requestFullscreen();
+        } else {
+          element.requestPointerLock();
+        }
+      }, false );          
     }else{
       alert("You cannot run this game in this browser");
     }
@@ -806,19 +844,76 @@ function MyDeliciousGame() {
       mesh.matrixAutoUpdate = false;
       world.add(mesh);
     }
+
+    // 3Dモデル用テクスチャ画像の読込
+    var loader = new THREE.GLTFLoader();
+  
+    // Load a glTF resource
+    loader.load(
+        // resource URL
+        'scene.gltf',
+        // called when the resource is loaded
+        function ( gltf ) {
+
+                mesh = gltf.scene;
+                mesh.scale.set( 0.65, 0.65, 0.65 );
+                mesh.rotation.set( 0, -80, 0);
+
+                if (mesh){
+                  animate();
+                }
+                mesh.position.set(2, -1, -2.5);
+                camera.add( mesh );
+    
+                //scene.add( gltf.scene );
+
+                //gltf.animations; // Array<THREE.AnimationClip>
+                //gltf.scene; // THREE.Scene
+                //gltf.scenes; // Array<THREE.Scene>
+                //gltf.cameras; // Array<THREE.Camera>
+                //gltf.asset; // Object
+
+        },
+        // called when loading is in progresses
+        function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+        },
+        // called when loading has errors
+        function ( error ) {
+
+                console.log( 'An error happened' );
+
+        }
+    );
+
+
+
     
     scene.add( world );
     game.appendChild(renderer.domElement);
     const materialArray = createMaterialArray(skyboxImagepaths);
+    
   
     skyboxGeo = new THREE.BoxGeometry(2000, 2000, 2000);
     skybox = new THREE.Mesh(skyboxGeo, materialArray);
-    scene.add(skybox)
+    scene.add(skybox);
+
 
 
     window.addEventListener("resize", _=>{
       setTimeout(windowResize,250);
     });
+  }
+  function shoot() {
+    let plasmaBall = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 4), new THREE.MeshBasicMaterial({
+      color: "aqua"
+    }));
+    plasmaBall.position.copy(emitter.getWorldPosition()); // start position - the tip of the weapon
+    plasmaBall.quaternion.copy(camera.quaternion); // apply camera's quaternion
+    scene.add(plasmaBall);
+    plasmaBalls.push(plasmaBall);
   }
   function animate() {
     requestAnimationFrame( animate );
@@ -832,7 +927,7 @@ function MyDeliciousGame() {
       scene.add( arrow );
   
       if (controls.click === true) {
-  
+        
         var intersects = raycaster.intersectObjects(world.children);
   
         if ( intersects.length > 0 ) {
@@ -964,17 +1059,19 @@ function randomPosition(radius) {
   return [x, y, z];
 }
 
-var Controlers = function() {
-  this.MouseMoveSensitivity = 0.007;
-  this.speed = 1200.0;
-  this.jumpHeight = 120.0;
-  this.height = 30.0;
-};
+class Controlers {
+  constructor() {
+    this.MouseMoveSensitivity = 0.007;
+    this.speed = 1200.0;
+    this.jumpHeight = 120.0;
+    this.height = 30.0;
+  }
+}
 
 
 
-const songs = ["music/head.mp3","music/nevermind.mp3","music/through.mp3","music/weekend.mp3","music/nandemonaiya.mp3","music/faking.mp3","music/older.mp3","music/notsobad.mp3","music/monogatari.mp3","music/bakamitai.mp3","music/levels.mp3","music/toby.mp3","music/crush.mp3","music/flutter.mp3","music/funny.mp3"];
-audioSrc = songs[Math.floor(Math.random() * songs.length)];
+const songs = ["music/head.mp3","music/nevermind.mp3","music/through.mp3","music/weekend.mp3","music/nandemonaiya.mp3","music/faking.mp3","music/older.mp3","music/notsobad.mp3","music/monogatari.mp3","music/bakamitai.mp3","music/levels.mp3","music/toby.mp3","music/crush.mp3","music/flutter.mp3","music/funny.mp3","music/Luke Chiang - May I Ask (feat. Alexis Kim).mp3","music/Modern Talking - Brother Louie.mp3","music/Ruel - Painkiller.mp3"];
+
 document.getElementById("new").addEventListener("click",_=>{
   game.innerHTML = "";
   MyDeliciousGame(game);
