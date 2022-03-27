@@ -800,7 +800,7 @@ function MyDeliciousGame() {
   
         if ( intersects.length > 0 ) {
           var intersect = intersects[ 0 ];
-          makeParticles(intersect.point);
+          makeParticles(scene,intersect.point);
         }
       }
   
@@ -826,8 +826,8 @@ function MyDeliciousGame() {
 }
 var particles = new Array();
 
-function makeParticles(intersectPosition){
-  var totalParticles = 800;
+function makeParticles(scene, intersectPosition){
+  var totalParticles = 80;
   
   var pointsGeometry = new THREE.Geometry();
   pointsGeometry.oldvertices = [];
@@ -936,21 +936,15 @@ var Controlers = function() {
 
 
 
-let mainScenario;
-let myGame;
 const songs = ["music/head.mp3","music/nevermind.mp3","music/through.mp3","music/weekend.mp3","music/nandemonaiya.mp3","music/faking.mp3","music/older.mp3","music/notsobad.mp3","music/monogatari.mp3","music/bakamitai.mp3","music/levels.mp3","music/toby.mp3","music/crush.mp3","music/flutter.mp3","music/funny.mp3"];
 audioSrc = songs[Math.floor(Math.random() * songs.length)];
 document.getElementById("new").addEventListener("click",_=>{
-  mainScenario = null;
-  myGame = null;
   game.innerHTML = "";
-  myGame = new MyDeliciousGame(game);
+  MyDeliciousGame(game);
 }, false);
 document.getElementById("schedablocks").addEventListener("click",_=>{
-  mainScenario = null;
-  myGame = null;
   game.innerHTML = "";
-  mainScenario = new main();
+  main();
 }, false);
 document.getElementById("home").addEventListener("click", _=>{
   location.replace("https://youtu.be/dQw4w9WgXcQ");
