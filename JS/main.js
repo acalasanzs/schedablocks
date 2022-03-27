@@ -666,8 +666,25 @@ function MyDeliciousGame() {
     initAudioButton(game);
     var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
 
+    camera = new THREE.PerspectiveCamera( 75, game.clientWidth/ game.clientHeight, 1, 3000 );
+    world = new THREE.Group();
+  
+    raycaster = new THREE.Raycaster(camera.getWorldPosition(new THREE.Vector3()), camera.getWorldDirection(new THREE.Vector3()));
+    arrow = new THREE.ArrowHelper(camera.getWorldDirection(new THREE.Vector3()), camera.getWorldPosition(new THREE.Vector3()), 3, 0x000000 );
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color( 0xffcccc );
+    scene.fog = new THREE.Fog( 0xffffff, 0, 2000 );
+
+    renderer = new THREE.WebGLRenderer( { antialias: true } );
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( game.clientWidth, game.clientHeight );
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild( renderer.domElement );
+    renderer.outputEncoding = THREE.sRGBEncoding;
     if ( havePointerLock ) {
-      var element = document.body;
+      var element = renderer.domElement;
       var pointerlockchange = function ( event ) {
         if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
           controls.enabled = true;
@@ -699,24 +716,6 @@ function MyDeliciousGame() {
     }else{
       alert("You cannot run this game in this browser");
     }
-    camera = new THREE.PerspectiveCamera( 75, game.clientWidth/ game.clientHeight, 1, 3000 );
-    world = new THREE.Group();
-  
-    raycaster = new THREE.Raycaster(camera.getWorldPosition(new THREE.Vector3()), camera.getWorldDirection(new THREE.Vector3()));
-    arrow = new THREE.ArrowHelper(camera.getWorldDirection(new THREE.Vector3()), camera.getWorldPosition(new THREE.Vector3()), 3, 0x000000 );
-
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color( 0xffcccc );
-    scene.fog = new THREE.Fog( 0xffffff, 0, 2000 );
-
-    renderer = new THREE.WebGLRenderer( { antialias: true } );
-    renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.setSize( game.clientWidth, game.clientHeight );
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.shadowMap.enabled = true;
-    document.body.appendChild( renderer.domElement );
-    renderer.outputEncoding = THREE.sRGBEncoding;
-
     window.addEventListener( 'resize', onWindowResize, false );
 
     var light = new THREE.HemisphereLight( 0xeeeeff, 0x777788, 0.75 );
@@ -828,7 +827,7 @@ function MyDeliciousGame() {
 var particles = new Array();
 
 function makeParticles(intersectPosition){
-  var totalParticles = 80;
+  var totalParticles = 800;
   
   var pointsGeometry = new THREE.Geometry();
   pointsGeometry.oldvertices = [];
@@ -929,9 +928,9 @@ function randomPosition(radius) {
 }
 
 var Controlers = function() {
-  this.MouseMoveSensitivity = 0.002;
-  this.speed = 800.0;
-  this.jumpHeight = 350.0;
+  this.MouseMoveSensitivity = 0.007;
+  this.speed = 1200.0;
+  this.jumpHeight = 120.0;
   this.height = 30.0;
 };
 
