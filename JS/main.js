@@ -30,10 +30,10 @@ function loadFile(filename) {
 
 const game = document.getElementById("game");
 const audio = new Audio();
-var analyser, dataArray, stats;
+var analyser, dataArray, stats, target;
 function main(audioSrc) {
   var noise = new SimplexNoise();
-  let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane, ball, clock, delta, interval, particles, target;
+  let scene, camera, renderer, skyboxGeo, skybox, controls, myReq, plane, ball, clock, delta, interval, particles;
   let menuText;
   let autoRotate = true;
   function makeRoughGround(mesh, distortionFr) {
@@ -433,40 +433,6 @@ function makeRoughBall(mesh, bassFr, treFr) {
       renderer.setSize(game.clientWidth, game.clientHeight);
     },150);
   }
-  function toggleAudio(){
-  
-    if(!audio.paused && !audio.ended ) {
-      let interval = setInterval(() => {
-        audio.pause();
-        if(audio.paused){
-          clearInterval(interval);
-          target.textContent = "MUTED";
-          target.style.color = "#fab1a0";
-          localStorage.setItem("music", 0);
-          return true;
-        }
-      }, 100);
-
-    }
-    else if (audio.paused) {
-        audio.play();
-        target.textContent = "SOUND";
-        target.style = "";
-        localStorage.setItem("music", 1);
-        return true;
-    }
-  }
-  function initAudio() {
-    if(localStorage.getItem("music") == '0') {
-      target.textContent = "MUTED";
-      target.style.color = "#fab1a0";
-    }else if(localStorage.getItem("music") == '1') {
-      audio.play();
-      target.textContent = "SOUND";
-      target.style = "";
-    }
-  }
-
   init()
 }
 
@@ -475,7 +441,39 @@ function makeRoughBall(mesh, bassFr, treFr) {
 
 
 
+function toggleAudio(){
+  
+  if(!audio.paused && !audio.ended ) {
+    let interval = setInterval(() => {
+      audio.pause();
+      if(audio.paused){
+        clearInterval(interval);
+        target.textContent = "MUTED";
+        target.style.color = "#fab1a0";
+        localStorage.setItem("music", 0);
+        return true;
+      }
+    }, 100);
 
+  }
+  else if (audio.paused) {
+      audio.play();
+      target.textContent = "SOUND";
+      target.style = "";
+      localStorage.setItem("music", 1);
+      return true;
+  }
+}
+function initAudio() {
+  if(localStorage.getItem("music") == '0') {
+    target.textContent = "MUTED";
+    target.style.color = "#fab1a0";
+  }else if(localStorage.getItem("music") == '1') {
+    audio.play();
+    target.textContent = "SOUND";
+    target.style = "";
+  }
+}
 
 
 
@@ -813,7 +811,7 @@ class Particles {
 
 
 let mainScenario;
-const songs = ["music/head.mp3","music/nevermind.mp3","music/through.mp3","music/weekend.mp3","music/nandemonaiya.mp3","music/faking.mp3","music/older.mp3","music/notsobad.mp3","music/monogatari.mp3","music/bakamitai.mp3","music/levels.mp3"];
+const songs = ["music/head.mp3","music/nevermind.mp3","music/through.mp3","music/weekend.mp3","music/nandemonaiya.mp3","music/faking.mp3","music/older.mp3","music/notsobad.mp3","music/monogatari.mp3","music/bakamitai.mp3","music/levels.mp3","music/toby.mp3","music/crush.mp3"];
 document.getElementById("new").addEventListener("click",_=>{
   if(document.querySelector("canvas"))document.querySelector("canvas").remove();
   if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
