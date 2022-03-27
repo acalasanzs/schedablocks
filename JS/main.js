@@ -84,6 +84,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true});
     renderer.setSize(game.clientWidth, game.clientHeight);
     renderer.setClearColor(0x574b90, 1);
+    renderer.autoClear = false;
     renderer.gammaOutput = true; 
     if (document.querySelector("canvas")){
       document.querySelector("canvas").remove()
@@ -176,18 +177,14 @@ function makeRoughBall(mesh, bassFr, treFr) {
                                             ██  ██  ██ ██    ██      ██ ██ ██      
                                             ██      ██  ██████  ███████ ██  ██████  
     */
+    target = document.createElement("div");
+    target.className = "sound blend";
     particles = new Particles(scene, 150);
     particles.init();
     audio.src = audioSrc;
     audio.loop = true;
-    audio.load()
-    let played = document.addEventListener("click",_=>{
-      audio.play()
-      document.removeEventListener("click",played)
-    });
-    target = document.createElement("div");
-    target.className = "sound blend";
-    target.textContent = "SOUND";
+    audio.load();
+    initAudio();
     game.appendChild(target);
     target.addEventListener("click", toggleAudio, false);
     const ballTextureLoader = new THREE.TextureLoader();
@@ -316,7 +313,7 @@ function makeRoughBall(mesh, bassFr, treFr) {
                                                                           ░                                  
     */
 
-    //Shader chuncks
+    /* //Shader chuncks
     loadFile('shaders/utils.glsl').then((utils) => {
       THREE.ShaderChunck['utils'] = utils;
 
@@ -346,6 +343,12 @@ function makeRoughBall(mesh, bassFr, treFr) {
       ]);
 
     });
+
+    const waterSimulation = new WaterSimulation();
+    const water = new Water();
+    const caustics = new Caustics(water.geometry);
+    scene.add(water.mesh);
+    const pool = new Pool(); */
 
     /* 
  █     █░ ▄▄▄     ▄▄▄█████▓▓█████  ██▀███       ██████  ██░ ██  ▄▄▄      ▓█████▄ ▓█████  ██▀███    ██████    
@@ -431,29 +434,38 @@ function makeRoughBall(mesh, bassFr, treFr) {
     },150);
   }
   function toggleAudio(){
-    if (null === audio || audio.readyState === audio.HAVE_NOTHING) return;
-    
-    if(!audio.paused && !audio.ended) {
-        let interval = setInterval(() => {
-          audio.pause();
-          if(audio.paused) clearInterval(interval);
+  
+    if(!audio.paused && !audio.ended ) {
+      let interval = setInterval(() => {
+        audio.pause();
+        if(audio.paused){
+          clearInterval(interval);
           target.textContent = "MUTED";
           target.style.color = "#fab1a0";
-        }, 100);
+          localStorage.setItem("music", 0);
+          return true;
+        }
+      }, 100);
+
     }
     else if (audio.paused) {
         audio.play();
         target.textContent = "SOUND";
         target.style = "";
+        localStorage.setItem("music", 1);
+        return true;
     }
   }
-  /* function getStandardDeviation(array) {
-    const n = array.length;
-    const mean = array.reduce((a, b) => a + b) / n;
-    return Math.sqrt(
-      array.map((x) => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n
-    );
-  } */
+  function initAudio() {
+    if(localStorage.getItem("music") == '0') {
+      target.textContent = "MUTED";
+      target.style.color = "#fab1a0";
+    }else if(localStorage.getItem("music") == '1') {
+      audio.play();
+      target.textContent = "SOUND";
+      target.style = "";
+    }
+  }
 
   init()
 }
@@ -520,10 +532,53 @@ class MyDeliciousGame {
 
   }
 }
-class WaterSimulation {
+class Water {
 
   constructor() {
-    this._camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 2000);
+    this.geometry = new THREE.PlaneBufferGeometry(2, 2, 200, 200);
+
+    const shadersPromises = [
+      loadFile('shaders/water/vertex.glsl'),
+      loadFile('shaders/water/fragment.glsl')
+    ];
+
+    this.loaded = Promise.all(shadersPromises)
+        .then(([vertexShader, fragmentShader]) => {
+      this.material = new THREE.RawShaderMaterial({
+        uniforms: {
+            light: { value: light },
+            tiles: { value: tiles },
+            sky: { value: textureCube },
+            water: { value: null },
+            causticTex: { value: null },
+            underwater: { value: false },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      });
+
+      this.mesh = new THREE.Mesh(this.geometry, this.material);
+    });
+  }
+
+  draw(renderer, waterTexture, causticsTexture) {
+    this.material.uniforms['water'].value = waterTexture;
+    this.material.uniforms['causticTex'].value = causticsTexture;
+
+    this.material.side = THREE.FrontSide;
+    this.material.uniforms['underwater'].value = true;
+    renderer.render(this.mesh, camera);
+
+    this.material.side = THREE.BackSide;
+    this.material.uniforms['underwater'].value = false;
+    renderer.render(this.mesh, camera);
+  }
+
+}
+class WaterSimulation {
+
+  constructor(camera) {
+    this._camera = camera;
 
     this._geometry = new THREE.PlaneBufferGeometry(2, 2);
 
@@ -763,7 +818,7 @@ document.getElementById("new").addEventListener("click",_=>{
   if(document.querySelector("canvas"))document.querySelector("canvas").remove();
   if (game.innerHTML.includes("SIDE")) game.innerHTML = "";
   let pause = setInterval(_=>{
-    audio.pause();
+    if (!audio.paused) audio.pause();
     if (audio.paused)
       clearInterval(pause);
   },10)
