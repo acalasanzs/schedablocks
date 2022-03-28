@@ -50,6 +50,25 @@ img{
   cursor: pointer;
 
 }
+#pointer {
+  position: absolute;
+  z-index: 9999999999999999999999999999999999999999999999999999999999999999999999999999;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  background: white;
+  opacity: 0.75;
+  border-radius: 50%;
+}
+.hide{
+  display: none;
+}
+#pointer.active{
+  background: red;
+  transform: translate(-50%, -50%) scale(2);
+}
 * {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */
@@ -164,6 +183,7 @@ img{
         </div>
 
     </div>
+    <div id="pointer"></div>
     <section id="loading-screen">
       <div id="loader"></div>
     </section>

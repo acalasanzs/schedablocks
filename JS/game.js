@@ -216,6 +216,7 @@ document.body.appendChild( stats.dom );
 
 
 var blocker = document.getElementById( 'blocker' );
+var shotPointer = document.getElementById("pointer");
 var instructions = document.getElementById( 'instructions' );
 
 var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
@@ -231,12 +232,14 @@ if ( havePointerLock ) {
             controls.enabled = true;
 
             blocker.style.display = 'none';
+            shotPointer.classList.remove("hide");
             document.title = "GAME - DO NOT ENTER DIRECTLY";
 
         } else {
 
             controls.enabled = false;
             blocker.style.display = '';
+            shotPointer.classList.add("hide");
             instructions.style.display = '';
             document.title = "GAME - PAUSED";
 
@@ -246,6 +249,7 @@ if ( havePointerLock ) {
 
     var pointerlockerror = function ( event ) {
         instructions.style.display = '';
+        shotPointer.classList.add("hide");
         document.title = "GAME - DO NOT ENTER DIRECTLY";
     }
 
@@ -612,7 +616,10 @@ function getShootDir(targetVec){
     targetVec.copy(ray.direction);
 }
 window.addEventListener("click",function(e){
-    console.log("click")
+    shotPointer.classList.add("active");
+    setTimeout(() => {
+        shotPointer.classList.remove("active");
+    }, 250);
     if(controls.enabled==true){
         var x = sphereBody.position.x;
         var y = sphereBody.position.y;
