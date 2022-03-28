@@ -21,7 +21,7 @@ function deg2rad(degrees)
 }
 var sphereShape, sphereBody, world, physicsMaterial, walls=[], balls=[], ballMeshes=[], boxes=[], boxMeshes=[];
 var camera, scene, renderer;
-var geometry, material, mesh;
+var geometry, floorMaterial, material, mesh;
 var controls,time = Date.now();
 
 
@@ -203,12 +203,37 @@ function init() {
     scene.add( controls.getObject() );
 
     // floor
+    // floor
+    const ballTextureLoader = new THREE.TextureLoader();
+    const balltilesHeightMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_height.png');
+    const balltilesNormalMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_normal.jpg');
+    const balltilesColorMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_basecolor.jpg');
+    const balltilesRoughnessMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_roughness.jpg');
+    const balltilesAmbientOcclusionMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_ambientOcclusion.jpg');
+    [balltilesHeightMap, balltilesNormalMap, balltilesColorMap, balltilesRoughnessMap, balltilesAmbientOcclusionMap].forEach(texture =>{
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.x = 50;
+      texture.repeat.y = 50;
+
+    });
+
+
     geometry = new THREE.PlaneGeometry( 300, 300, 50, 50 );
     geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
 
     material = new THREE.MeshLambertMaterial( { color: 0xdddddd } );
+    floorMaterial = new THREE.MeshLambertMaterial( {
+        map: balltilesColorMap,
+        normalMap: balltilesNormalMap,
+        displacementMap: balltilesHeightMap,
+        roughnessMap: balltilesRoughnessMap,
+        roughness: 1,
+        aoMap: balltilesAmbientOcclusionMap,
+        side: THREE.DoubleSide
+    } )
 
-    mesh = new THREE.Mesh( geometry, material );
+    mesh = new THREE.Mesh( geometry, floorMaterial );
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     scene.add( mesh );
