@@ -387,7 +387,20 @@ function init() {
 
         light.shadowCameraVisible = true;
     }
+
     scene.add( light );
+
+    var dirLight = new THREE.SpotLight( 0xffffff, 1, 0.0, 180.0);
+    dirLight.color.setHSL( 0.1, 1, 0.95 );
+    dirLight.position.set(-1000, 2000, 2000);
+    dirLight.castShadow = true;
+    scene.add( dirLight );
+    
+    dirLight.shadow.mapSize.width = 4096;
+    dirLight.shadow.mapSize.height = 4096;
+    dirLight.shadow.camera.far = 3000;
+
+
 
     const fovAnim = () => {
         if (value > 25) {
@@ -447,12 +460,28 @@ function init() {
 
     });
 
+    const boxtilesHeightMap = new ballTextureLoader.load('images/menu/ball/Wood_022_height.png');
+    const boxtilesNormalMap = new ballTextureLoader.load('images/menu/ball/Wood_022_normal.jpg');
+    const boxtilesColorMap = new ballTextureLoader.load('images/menu/ball/Wood_022_basecolor.jpg');
+    const boxtilesRoughnessMap = new ballTextureLoader.load('images/menu/ball/Wood_022_roughness.jpg');
+    const boxtilesAmbientOcclusionMap = new ballTextureLoader.load('images/menu/ball/Wood_022_ambientOcclusion.jpg');
 
+    [boxtilesHeightMap, boxtilesNormalMap, boxtilesColorMap, boxtilesRoughnessMap, boxtilesAmbientOcclusionMap].forEach(texture =>{
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.x = 1;
+        texture.repeat.y = 1;
+  
+      });
     geometry = new THREE.PlaneGeometry( 300, 300, 50, 50 );
     geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
 
-    material = new THREE.MeshLambertMaterial( { color: 0xdddddd } );
-    floorMaterial = new THREE.MeshLambertMaterial( {
+    material = new THREE.MeshPhysicalMaterial( {
+        map: boxtilesColorMap,
+        normalMap: boxtilesNormalMap,
+        aoMap: boxtilesAmbientOcclusionMap
+    });
+    floorMaterial = new THREE.MeshLambertMaterial(  {
         map: balltilesColorMap,
         normalMap: balltilesNormalMap,
         displacementMap: balltilesHeightMap,
