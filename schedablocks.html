@@ -347,6 +347,7 @@ img {
   position: fixed;
   top: 50px;
   cursor: pointer;
+  z-index: 99999999999999999999;
   width: 100px;
   font-size: 1.5rem;
   mix-blend-mode: screen;
@@ -361,31 +362,6 @@ img {
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Edge, Opera and Firefox */
-}
-.gray {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background-color: gray;
-  opacity: 0.4;
-  animation: 4s opacity infinite;
-  font-size: 3em;
-  color: #000;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-@keyframes opacity {
-  from {
-    opacity: 0.4;
-  }
-  50%{
-    opacity: 0.7;
-  }
-  to{
-    opacity: 0.4;
-  }
 }
 @keyframes shadow {
   0%{
@@ -427,7 +403,7 @@ img {
                <span class="sidebar-tooltip group-hover:scale-100">Home</span>
             </div>
          </div>
-         <div id="game" class="content-container noselect"><p class="blend">v.0.4.0</p> <h2 class="blend">PLEASE CLICK ANY SIDE BUTTON</h2><img src="images/menu/bg.jpg" alt=""></div>
+         <div id="game" class="content-container noselect"><p class="blend">v.0.5.0</p> <h2 class="blend">PLEASE CLICK ANY SIDE BUTTON</h2><img src="images/menu/bg.jpg" alt=""></div>
       </div>
    </div>
    <script src="JS/gsap.min.js"></script>

@@ -1,8 +1,35 @@
+/* 
+▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄       ▄▄  ▄▄▄▄▄▄▄▄▄▄▄ 
+▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░▌     ▐░░▌▐░░░░░░░░░░░▌
+▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀█░▌▐░▌░▌   ▐░▐░▌▐░█▀▀▀▀▀▀▀▀▀ 
+▐░▌          ▐░▌       ▐░▌▐░▌▐░▌ ▐░▌▐░▌▐░▌          
+▐░▌ ▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄█░▌▐░▌ ▐░▐░▌ ▐░▌▐░█▄▄▄▄▄▄▄▄▄ 
+▐░▌▐░░░░░░░░▌▐░░░░░░░░░░░▌▐░▌  ▐░▌  ▐░▌▐░░░░░░░░░░░▌
+▐░▌ ▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌▐░▌   ▀   ▐░▌▐░█▀▀▀▀▀▀▀▀▀ 
+▐░▌       ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░▌          
+▐░█▄▄▄▄▄▄▄█░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░█▄▄▄▄▄▄▄▄▄ 
+▐░░░░░░░░░░░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░░░░░░░░░░░▌
+▀▀▀▀▀▀▀▀▀▀▀  ▀         ▀  ▀         ▀  ▀▀▀▀▀▀▀▀▀▀▀ 
+    ╔═╗╦  ╔╗ ╔═╗╦═╗╔╦╗  ╦  ╔═╗╦  ╔═╗╦═╗ ╦
+    ╠═╣║  ╠╩╗║╣ ╠╦╝ ║   ║  ╠═╣║  ║╣ ║╔╩╦╝
+    ╩ ╩╩═╝╚═╝╚═╝╩╚═ ╩   ╩  ╩ ╩╩═╝╚═╝╩╩ ╚═
+*/
+function deg2rad(degrees)
+{
+  var pi = Math.PI;
+  return degrees * (pi/180);
+}
 var sphereShape, sphereBody, world, physicsMaterial, walls=[], balls=[], ballMeshes=[], boxes=[], boxMeshes=[];
-
 var camera, scene, renderer;
 var geometry, material, mesh;
 var controls,time = Date.now();
+
+
+stats = new Stats();
+stats.showPanel(0);
+stats.dom.style.left = "calc(100% - 80px)";
+document.body.appendChild( stats.dom );
+
 
 var blocker = document.getElementById( 'blocker' );
 var instructions = document.getElementById( 'instructions' );
@@ -125,11 +152,11 @@ function initCannon(){
     world.addContactMaterial(physicsContactMaterial);
 
     // Create a sphere
-    var mass = 5, radius = 1.3;
+    var mass = 5, radius = 2;
     sphereShape = new CANNON.Sphere(radius);
     sphereBody = new CANNON.Body({ mass: mass });
     sphereBody.addShape(sphereShape);
-    sphereBody.position.set(0,5,0);
+    sphereBody.position.set(0,5, 0);
     sphereBody.linearDamping = 0.9;
     world.add(sphereBody);
 
@@ -163,8 +190,8 @@ function init() {
 
         light.shadowMapBias = 0.1;
         light.shadowMapDarkness = 0.7;
-        light.shadowMapWidth = 2*512;
-        light.shadowMapHeight = 2*512;
+        light.shadowMapWidth = 32*512;
+        light.shadowMapHeight = 32*512;
 
         light.shadowCameraVisible = true;
     }
@@ -186,9 +213,9 @@ function init() {
     mesh.receiveShadow = true;
     scene.add( mesh );
 
-    renderer = new THREE.WebGLRenderer();
-    renderer.shadowMapEnabled = true;
-    renderer.shadowMapSoft = true;
+    renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.enabled = true;
     renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.setClearColor( scene.fog.color, 1 );
 
@@ -251,6 +278,40 @@ function init() {
         }
         last = boxbody;
     }
+
+    // 3Dモデル用テクスチャ画像の読込
+    var loader = new THREE.GLTFLoader();
+  
+    // Load a glTF resource
+    loader.load(
+        // resource URL
+        'scene.gltf',
+        // called when the resource is loaded
+        function ( gltf ) {
+
+                mesh = gltf.scene;
+                mesh.scale.set( 0.0025, 0.0025, 0.0025 );
+                mesh.rotation.set( deg2rad(0), deg2rad(180), deg2rad(0));
+                if (mesh){
+                  animate();
+                }
+                mesh.position.set(0, -1, -1.9);
+                camera.add( mesh );
+
+        },
+        // called when loading is in progresses
+        function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+        },
+        // called when loading has errors
+        function ( error ) {
+
+                console.log( 'An error happened' );
+
+        }
+    );
 }
 
 function onWindowResize() {
@@ -279,15 +340,17 @@ function animate() {
     }
 
     controls.update( Date.now() - time );
+    stats.begin();
     renderer.render( scene, camera );
+    stats.end();
     time = Date.now();
 
 }
 
 var ballShape = new CANNON.Sphere(0.2);
-var ballGeometry = new THREE.SphereGeometry(ballShape.radius, 32, 32);
+var ballGeometry = new THREE.SphereGeometry(ballShape.radius, 8, 8);
 var shootDirection = new THREE.Vector3();
-var shootVelo = 15;
+var shootVelo = 25;
 var projector = new THREE.Projector();
 function getShootDir(targetVec){
     var vector = targetVec;
@@ -302,7 +365,7 @@ window.addEventListener("click",function(e){
         var x = sphereBody.position.x;
         var y = sphereBody.position.y;
         var z = sphereBody.position.z;
-        var ballBody = new CANNON.Body({ mass: 1 });
+        var ballBody = new CANNON.Body({ mass: 10 });
         ballBody.addShape(ballShape);
         var ballMesh = new THREE.Mesh( ballGeometry, material );
         world.add(ballBody);
@@ -324,3 +387,106 @@ window.addEventListener("click",function(e){
         ballMesh.position.set(x,y,z);
     }
 });
+
+var particles = new Array();
+
+function makeParticles(scene, intersectPosition){
+  var totalParticles = 80;
+  
+  var pointsGeometry = new THREE.Geometry();
+  pointsGeometry.oldvertices = [];
+  var colors = [];
+  for (var i = 0; i < totalParticles; i++) {
+    var position = randomPosition(Math.random());
+    var vertex = new THREE.Vector3(position[0], position[1] , position[2]);
+    pointsGeometry.oldvertices.push([0,0,0]);
+    pointsGeometry.vertices.push(vertex);
+
+    var color = new THREE.Color(Math.random() * 0xffffff);
+    colors.push(color);
+  }
+  pointsGeometry.colors = colors;
+
+  var pointsMaterial = new THREE.PointsMaterial({
+    size: .8,
+    sizeAttenuation: true,
+    depthWrite: true,
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    vertexColors: THREE.VertexColors
+  });
+
+  var points = new THREE.Points(pointsGeometry, pointsMaterial);
+
+  points.prototype = Object.create(THREE.Points.prototype);
+  points.position.x = intersectPosition.x;
+  points.position.y = intersectPosition.y;
+  points.position.z = intersectPosition.z;
+  points.updateMatrix();
+  points.matrixAutoUpdate = false;
+
+  points.prototype.constructor = points;
+  points.prototype.update = function(index) {
+    var pCount = this.constructor.geometry.vertices.length;
+	  var positionYSum = 0;
+    while(pCount--) {
+      var position = this.constructor.geometry.vertices[pCount];
+      var oldPosition = this.constructor.geometry.oldvertices[pCount];
+
+      var velocity = {
+        x: (position.x - oldPosition[0] ),
+        y: (position.y - oldPosition[1] ),
+        z: (position.z - oldPosition[2] )				
+      }
+
+      var oldPositionX = position.x;
+      var oldPositionY = position.y;
+      var oldPositionZ = position.z;
+
+      position.y -= .03; // gravity
+
+      position.x += velocity.x;
+      position.y += velocity.y;
+      position.z += velocity.z;
+      
+      var wordlPosition = this.constructor.position.y + position.y;
+      
+      if (wordlPosition <= 0) {
+        //particle touched the ground
+        oldPositionY = position.y;
+        position.y = oldPositionY - (velocity.y * .3);
+		
+		    positionYSum += 1;
+      }
+
+      this.constructor.geometry.oldvertices[pCount] = [oldPositionX, oldPositionY, oldPositionZ];
+    }
+	
+    pointsGeometry.verticesNeedUpdate = true;
+	
+    if (positionYSum >= totalParticles) {
+      particles.splice(index, 1);
+	    scene.remove(this.constructor);
+      console.log('particle removed');
+    }
+
+  };
+  particles.push( points );
+  scene.add(points);
+}
+
+function randomPosition(radius) {
+  radius = radius * Math.random();
+  var theta = Math.random() * 2.0 * Math.PI;
+  var phi = Math.random() * Math.PI;
+
+  var sinTheta = Math.sin(theta); 
+  var cosTheta = Math.cos(theta);
+  var sinPhi = Math.sin(phi); 
+  var cosPhi = Math.cos(phi);
+  var x = radius * sinPhi * cosTheta;
+  var y = radius * sinPhi * sinTheta;
+  var z = radius * cosPhi;
+
+  return [x, y, z];
+}
