@@ -17,6 +17,11 @@ document.addEventListener("DOMContentLoaded",e=>{
     i++;
   });
 });
+function onTransitionEnd( event ) {
+
+	event.target.remove();
+	
+}
 function loadFile(filename) {
 return new Promise((resolve, reject) => {
   const loader = new THREE.FileLoader();
@@ -125,7 +130,6 @@ function init() {
         'scene.gltf',
         // called when the resource is loaded
         function ( gltf ) {
-
                 mesh = gltf.scene;
                 mesh.scale.set( 4, 4, 4 );
                 mesh.rotation.set(deg2rad(-60), deg2rad(90), deg2rad(25));
@@ -134,6 +138,10 @@ function init() {
                   animate();
                 }
                 scene.add( mesh );
+                let loadingScreen = document.getElementById( 'loading-screen' );
+                loadingScreen.classList.add( 'fade-out' );
+                // optional: remove loader from DOM via event listener
+                loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
     
                 //scene.add( gltf.scene );
 
@@ -309,6 +317,7 @@ function init() {
 ██║  ██║██║ ╚████║██║██║ ╚═╝ ██║██║  ██║   ██║   ███████╗
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝
 */
+
 
   animate();
   
@@ -491,7 +500,11 @@ game.innerHTML = "";
 MyDeliciousGame();
 }, false);
 document.getElementById("schedablocks").addEventListener("click",_=>{
-game.innerHTML = "";
+game.innerHTML = `
+<section id="loading-screen">
+<div id="loader"></div>
+</section>
+`;
 main();
 }, false);
 document.getElementById("home").addEventListener("click", _=>{

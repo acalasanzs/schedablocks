@@ -19,6 +19,7 @@ function deg2rad(degrees)
   var pi = Math.PI;
   return degrees * (pi/180);
 }
+var loadingScreen;
 var sphereShape, sphereBody, world, physicsMaterial, walls=[], balls=[], ballMeshes=[], boxes=[], boxMeshes=[];
 var camera, scene, renderer;
 var geometry, floorMaterial, material, mesh;
@@ -167,9 +168,12 @@ function initCannon(){
     groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
     world.add(groundBody);
 }
+function onTransitionEnd( event ) {
 
+	event.target.remove();
+	
+}
 function init() {
-
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
     scene = new THREE.Scene();
@@ -181,6 +185,7 @@ function init() {
     light = new THREE.SpotLight( 0xffffff );
     light.position.set( 10, 30, 20 );
     light.target.position.set( 0, 0, 0 );
+
     if(true){
         light.castShadow = true;
 
@@ -313,7 +318,10 @@ function init() {
         'scene.gltf',
         // called when the resource is loaded
         function ( gltf ) {
-
+                loadingScreen = document.getElementById( 'loading-screen' );
+                loadingScreen.classList.add( 'fade-out' );
+                // optional: remove loader from DOM via event listener
+                loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
                 mesh = gltf.scene;
                 mesh.scale.set( 0.0025, 0.0025, 0.0025 );
                 mesh.rotation.set( deg2rad(0), deg2rad(180), deg2rad(0));
@@ -338,7 +346,6 @@ function init() {
         }
     );
 }
-
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
