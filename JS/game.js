@@ -15,8 +15,7 @@
     ╩ ╩╩═╝╚═╝╚═╝╩╚═ ╩   ╩  ╩ ╩╩═╝╚═╝╩╩ ╚═
 */
 /**
- * @author mrdoob / http://mrdoob.com/
- * @author schteppe / https://github.com/schteppe
+ * @author acalasanzs
  */
 var velocityFactor;
  class PointerLockControls {
@@ -388,7 +387,7 @@ function init() {
 
     const fovAnim = () => {
         if (value > 25) {
-            console.log("speedo");
+            clearInterval(tween);
         }else{
             value += 2;
             camera.fov = 75 + value;
@@ -612,8 +611,8 @@ function getShootDir(targetVec){
     var ray = new THREE.Ray(sphereBody.position, vector.sub(sphereBody.position).normalize() );
     targetVec.copy(ray.direction);
 }
-
 window.addEventListener("click",function(e){
+    console.log("click")
     if(controls.enabled==true){
         var x = sphereBody.position.x;
         var y = sphereBody.position.y;
@@ -640,7 +639,6 @@ window.addEventListener("click",function(e){
         ballMesh.position.set(x,y,z);
     }
 });
-
 var particles = new Array();
 
 function makeParticles(scene, intersectPosition){
