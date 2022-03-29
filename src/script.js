@@ -54,9 +54,14 @@ const pointLight = new THREE.PointLight(0xffffff, 2)
 pointLight.position.set(0,0,2);
 scene.add(pointLight)
 
-const pointLight2 = new THREE.PointLight(0xffffff, 1)
+const pointLight2 = new THREE.PointLight(0xffffff, 2)
 pointLight2.position.set(0,2,0);
 scene.add(pointLight2)
+
+const pointLightHelper2 = new THREE.PointLightHelper(pointLight, 1);
+const pointLightHelper = new THREE.PointLightHelper(pointLight2, 1);
+scene.add(pointLightHelper2);
+scene.add(pointLightHelper);
 
 gui.add(sphere.material, "displacementScale").min(-3).max(3).step(0.01);
 /**
