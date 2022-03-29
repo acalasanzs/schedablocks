@@ -17,6 +17,95 @@
 /**
  * @author acalasanzs
  */
+
+ var THREEx = {}
+ THREEx.VolumetricSpotLightMaterial	= function(){
+     // 
+     var vertexShader	= [
+         'varying vec3 vNormal;',
+         'varying vec3 vWorldPosition;',
+         
+         'void main(){',
+             '// compute intensity',
+             'vNormal		= normalize( normalMatrix * normal );',
+ 
+             'vec4 worldPosition	= modelMatrix * vec4( position, 1.0 );',
+             'vWorldPosition		= worldPosition.xyz;',
+ 
+             '// set gl_Position',
+             'gl_Position	= projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
+         '}',
+     ].join('\n')
+     var fragmentShader	= [
+         'varying vec3		vNormal;',
+         'varying vec3		vWorldPosition;',
+ 
+         'uniform vec3		lightColor;',
+ 
+         'uniform vec3		spotPosition;',
+ 
+         'uniform float		attenuation;',
+         'uniform float		anglePower;',
+ 
+         'void main(){',
+             'float intensity;',
+ 
+             //////////////////////////////////////////////////////////
+             // distance attenuation					//
+             //////////////////////////////////////////////////////////
+             'intensity	= distance(vWorldPosition, spotPosition)/attenuation;',
+             'intensity	= 1.0 - clamp(intensity, 0.0, 1.0);',
+ 
+             //////////////////////////////////////////////////////////
+             // intensity on angle					//
+             //////////////////////////////////////////////////////////
+             'vec3 normal	= vec3(vNormal.x, vNormal.y, abs(vNormal.z));',
+             'float angleIntensity	= pow( dot(normal, vec3(0.0, 0.0, 1.0)), anglePower );',
+             'intensity	= intensity * angleIntensity;',		
+             // 'gl_FragColor	= vec4( lightColor, intensity );',
+ 
+             //////////////////////////////////////////////////////////
+             // final color						//
+             //////////////////////////////////////////////////////////
+ 
+             // set the final color
+             'gl_FragColor	= vec4( lightColor, intensity);',
+         '}',
+     ].join('\n')
+ 
+     // create custom material from the shader code above
+     //   that is within specially labeled script tags
+     var material	= new THREE.ShaderMaterial({
+         uniforms: { 
+             attenuation	: {
+                 type	: "f",
+                 value	: 5.0
+             },
+             anglePower	: {
+                 type	: "f",
+                 value	: 1.2
+             },
+             spotPosition		: {
+                 type	: "v3",
+                 value	: new THREE.Vector3( 0, 0, 0 )
+             },
+             lightColor	: {
+                 type	: "c",
+                 value	: new THREE.Color('cyan')
+             },
+         },
+         vertexShader	: vertexShader,
+         fragmentShader	: fragmentShader,
+         // side		: THREE.DoubleSide,
+         // blending	: THREE.AdditiveBlending,
+         transparent	: true,
+         depthWrite	: false,
+     });
+     return material
+ }
+
+
+
 var velocityFactor;
  class PointerLockControls {
     constructor(camera, cannonBody) {
@@ -390,15 +479,40 @@ function init() {
 
     scene.add( light );
 
-    var dirLight = new THREE.SpotLight( 0xffffff, 1, 0.0, 180.0);
+    var hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
+    hemiLight.position.set( 0, 300, 0 );
+    scene.add( hemiLight );
+    
+    var dirLight = new THREE.SpotLight( 0xffffff, 3, 0.0, 180.0);
     dirLight.color.setHSL( 0.1, 1, 0.95 );
     dirLight.position.set(-1000, 2000, 2000);
     dirLight.castShadow = true;
     scene.add( dirLight );
+
+
+    var dirLight2 = new THREE.SpotLight( 0xffffff, 6, 0.0, 180.0);
+    dirLight2.color.setHSL( 0.1, 1, 0.95 );
+    dirLight2.position.set(-1000, 2000, -2000);
+    dirLight2.castShadow = true;
+    scene.add( dirLight );
+
+    var helper  = new THREEx.VolumetricSpotLightMaterial(dirLight)
+    scene.add(helper.object3d);
+    
+
+    var dirLight3 = new THREE.SpotLight( 0xffffff, 6, 0.0, 180.0);
+    dirLight3.color.setHSL( 0.1, 1, 0.95 );
+    dirLight3.position.set(-10, 1.3, 20);
+    dirLight3.castShadow = true;
+    scene.add( dirLight3 );
+
     
     dirLight.shadow.mapSize.width = 4096;
     dirLight.shadow.mapSize.height = 4096;
     dirLight.shadow.camera.far = 3000;
+    dirLight2.shadow.mapSize.width = 4096;
+    dirLight2.shadow.mapSize.height = 4096;
+    dirLight2.shadow.camera.far = 3000;
 
 
 
@@ -447,11 +561,11 @@ function init() {
 
     // floor
     const ballTextureLoader = new THREE.TextureLoader();
-    const balltilesHeightMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_height.png');
-    const balltilesNormalMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_normal.jpg');
-    const balltilesColorMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_basecolor.jpg');
-    const balltilesRoughnessMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_roughness.jpg');
-    const balltilesAmbientOcclusionMap = new ballTextureLoader.load('images/menu/ball/Stylized_Wood_Planks_001_ambientOcclusion.jpg');
+    const balltilesHeightMap = new ballTextureLoader.load('images/menu/ball/Rock_045_height.png');
+    const balltilesNormalMap = new ballTextureLoader.load('images/menu/ball/Rock_045_normal.jpg');
+    const balltilesColorMap = new ballTextureLoader.load('images/menu/ball/Rock_045_basecolor.jpg');
+    const balltilesRoughnessMap = new ballTextureLoader.load('images/menu/ball/Rock_045_roughness.jpg');
+    const balltilesAmbientOcclusionMap = new ballTextureLoader.load('images/menu/ball/Rock_045_ambientOcclusion.jpg');
     [balltilesHeightMap, balltilesNormalMap, balltilesColorMap, balltilesRoughnessMap, balltilesAmbientOcclusionMap].forEach(texture =>{
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
@@ -476,17 +590,18 @@ function init() {
     geometry = new THREE.PlaneGeometry( 300, 300, 50, 50 );
     geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
 
-    material = new THREE.MeshPhysicalMaterial( {
+    material = new THREE.MeshStandardMaterial( {
         map: boxtilesColorMap,
         normalMap: boxtilesNormalMap,
         aoMap: boxtilesAmbientOcclusionMap
     });
-    floorMaterial = new THREE.MeshLambertMaterial(  {
+    floorMaterial = new THREE.MeshStandardMaterial(  {
         map: balltilesColorMap,
         normalMap: balltilesNormalMap,
         displacementMap: balltilesHeightMap,
+        displacementScale: 0.005,
         roughnessMap: balltilesRoughnessMap,
-        roughness: 1,
+        roughness: 0.005,
         aoMap: balltilesAmbientOcclusionMap,
         side: THREE.DoubleSide
     } )
@@ -499,6 +614,7 @@ function init() {
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.shadowMap.enabled = true;
+    renderer.physicallyCorrectLights = true;
     renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.setClearColor( scene.fog.color, 1 );
 
@@ -653,6 +769,7 @@ window.addEventListener("click",function(e){
         var x = sphereBody.position.x;
         var y = sphereBody.position.y;
         var z = sphereBody.position.z;
+        console.log(x,y,z);
         var ballBody = new CANNON.Body({ mass: 10 });
         ballBody.addShape(ballShape);
         var ballMesh = new THREE.Mesh( ballGeometry, material );
