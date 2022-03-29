@@ -293,7 +293,7 @@ function deg2rad(degrees)
 }
 var loadingScreen;
 var sphereShape, sphereBody, world, physicsMaterial, walls=[], balls=[], ballMeshes=[], boxes=[], boxMeshes=[];
-var camera, scene, renderer, animation, value, tween;
+var camera, scene, renderer, animation, value, tween, clock, delta, interval;
 var geometry, floorMaterial, material, mesh;
 var controls,time = Date.now();
 
@@ -453,66 +453,41 @@ function init() {
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
     scene = new THREE.Scene();
-    scene.fog = new THREE.Fog( 0x000000, 0, 500 );
+    scene.fog = new THREE.Fog( 0xffddcc, 0, 500 );
 
-    var ambient = new THREE.AmbientLight( 0x111111 );
+    var ambient = new THREE.AmbientLight( 0xffffff );
     scene.add( ambient );
 
     light = new THREE.SpotLight( 0xffffff );
-    light.position.set( 10, 30, 20 );
-    light.target.position.set( 0, 0, 0 );
-
-    if(true){
-        light.castShadow = true;
-
-        light.shadowCameraNear = 20;
-        light.shadowCameraFar = 50;//camera.far;
-        light.shadowCameraFov = 40;
-
-        light.shadowMapBias = 0.1;
-        light.shadowMapDarkness = 0.7;
-        light.shadowMapWidth = 32*512;
-        light.shadowMapHeight = 32*512;
-
-        light.shadowCameraVisible = true;
-    }
 
     scene.add( light );
-
-    var hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
-    hemiLight.position.set( 0, 300, 0 );
-    scene.add( hemiLight );
     
-    var dirLight = new THREE.SpotLight( 0xffffff, 3, 0.0, 180.0);
-    dirLight.color.setHSL( 0.1, 1, 0.95 );
-    dirLight.position.set(-1000, 2000, 2000);
-    dirLight.castShadow = true;
-    scene.add( dirLight );
+    var spotLight = new THREE.SpotLight( 0xffffff );
+    spotLight.position.set( 100, 1000, 100 );
 
 
-    var dirLight2 = new THREE.SpotLight( 0xffffff, 6, 0.0, 180.0);
+    var dirLight2 = new THREE.SpotLight( 0xffffff, 6);
     dirLight2.color.setHSL( 0.1, 1, 0.95 );
-    dirLight2.position.set(-1000, 2000, -2000);
-    dirLight2.castShadow = true;
-    scene.add( dirLight );
-
-    var helper  = new THREEx.VolumetricSpotLightMaterial(dirLight)
-    scene.add(helper.object3d);
+    dirLight2.position.set(10, 20, -20);
+    dirLight2.target.position.set( 0, 0, 0 );
+    scene.add( dirLight2 );
     
 
-    var dirLight3 = new THREE.SpotLight( 0xffffff, 6, 0.0, 180.0);
+    var dirLight3 = new THREE.SpotLight( 0xffffff, 6);
     dirLight3.color.setHSL( 0.1, 1, 0.95 );
-    dirLight3.position.set(-10, 1.3, 20);
+    dirLight3.target.position.set( 0, 0, 0 );
+    dirLight3.position.set(-10, 20, 20);
     dirLight3.castShadow = true;
     scene.add( dirLight3 );
 
-    
-    dirLight.shadow.mapSize.width = 4096;
-    dirLight.shadow.mapSize.height = 4096;
-    dirLight.shadow.camera.far = 3000;
-    dirLight2.shadow.mapSize.width = 4096;
-    dirLight2.shadow.mapSize.height = 4096;
-    dirLight2.shadow.camera.far = 3000;
+    var lights = [dirLight2,dirLight3,spotLight,light];
+
+    lights.forEach(llum =>{
+        llum.shadow.mapSize.width = 2048;
+        llum.shadow.mapSize.height = 2048;
+        llum.shadow.camera.far = 300;
+        llum.castShadow = true;
+    })
 
 
 
@@ -561,11 +536,11 @@ function init() {
 
     // floor
     const ballTextureLoader = new THREE.TextureLoader();
-    const balltilesHeightMap = new ballTextureLoader.load('images/menu/ball/Rock_045_height.png');
-    const balltilesNormalMap = new ballTextureLoader.load('images/menu/ball/Rock_045_normal.jpg');
-    const balltilesColorMap = new ballTextureLoader.load('images/menu/ball/Rock_045_basecolor.jpg');
-    const balltilesRoughnessMap = new ballTextureLoader.load('images/menu/ball/Rock_045_roughness.jpg');
-    const balltilesAmbientOcclusionMap = new ballTextureLoader.load('images/menu/ball/Rock_045_ambientOcclusion.jpg');
+    const balltilesHeightMap = new ballTextureLoader.load('images/menu/ball/Stylized_Grass_002_height.png');
+    const balltilesNormalMap = new ballTextureLoader.load('images/menu/ball/Stylized_Grass_002_normal.jpg');
+    const balltilesColorMap = new ballTextureLoader.load('images/menu/ball/Stylized_Grass_002_basecolor.jpg');
+    const balltilesRoughnessMap = new ballTextureLoader.load('images/menu/ball/Stylized_Grass_002_roughness.jpg');
+    const balltilesAmbientOcclusionMap = new ballTextureLoader.load('images/menu/ball/Stylized_Grass_002_ambientOcclusion.jpg');
     [balltilesHeightMap, balltilesNormalMap, balltilesColorMap, balltilesRoughnessMap, balltilesAmbientOcclusionMap].forEach(texture =>{
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
@@ -599,7 +574,7 @@ function init() {
         map: balltilesColorMap,
         normalMap: balltilesNormalMap,
         displacementMap: balltilesHeightMap,
-        displacementScale: 0.005,
+        displacementScale: 0.05,
         roughnessMap: balltilesRoughnessMap,
         roughness: 0.005,
         aoMap: balltilesAmbientOcclusionMap,
@@ -643,6 +618,11 @@ function init() {
         boxMeshes.push(boxMesh);
     }
 
+    // Limit FPS
+    clock = new THREE.Clock();
+    delta = 0;
+    // 60 fps
+    interval = 1 / 60;
 
     // Add linked boxes
     var size = 0.5;
@@ -742,8 +722,13 @@ function animate() {
 
     controls.update( Date.now() - time );
     stats.begin();
-    renderer.render( scene, camera );
-    stats.end();
+    delta += clock.getDelta();
+    if (delta > interval) {
+        renderer.render( scene, camera );
+
+        delta = delta % interval;
+        stats.end();
+    }
     time = Date.now();
 
 }
