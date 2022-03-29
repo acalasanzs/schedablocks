@@ -1,10 +1,12 @@
 {
-  "repository": "#",
-  "license": "UNLICENSED",
+  "repository": "https://github.com/acalasanzs/schedablocks",
+  "license": "MIT",
   "scripts": {
     "build": "webpack --config ./bundler/webpack.prod.js",
     "dev": "webpack serve --config ./bundler/webpack.dev.js"
   },
+  "name": "schedablocks",
+  "version": "0.0.1",
   "dependencies": {
     "@babel/core": "^7.13.1",
     "@babel/preset-env": "^7.13.5",
@@ -25,5 +27,8 @@
     "webpack-cli": "^4.5.0",
     "webpack-dev-server": "^3.11.2",
     "webpack-merge": "^5.7.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
   }
 }

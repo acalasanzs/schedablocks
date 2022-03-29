@@ -3,6 +3,19 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'dat.gui'
 
+// Loading
+const textureLoader = new THREE.TextureLoader();
+
+const abstract = {
+    aoMap: textureLoader.load('/images/materials/abstract/Abstract_011_ambientOcclusion.jpg'),
+    displacementMap: textureLoader.load('/images/materials/abstract/Abstract_011_height.png'),
+    baseColor: textureLoader.load('/images/materials/abstract/Abstract_011_basecolor.jpg'),
+    metallic: textureLoader.load('/images/materials/abstract/Abstract_011_metallic.jpg'),
+    normalMap: textureLoader.load('/images/materials/abstract/Abstract_011_normal.jpg'),
+    roughness: textureLoader.load('/images/materials/abstract/Abstract_011_roughness.jpg')
+}
+
+
 // Debug
 const gui = new dat.GUI()
 
@@ -13,25 +26,39 @@ const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene()
 
 // Objects
-const geometry = new THREE.TorusGeometry( .7, .2, 16, 100 );
+const geometry = new THREE.SphereBufferGeometry(.5, 64, 64);
 
 // Materials
 
-const material = new THREE.MeshBasicMaterial()
-material.color = new THREE.Color(0xff0000)
+const material = new THREE.MeshStandardMaterial({
+    metalness: 0.7,
+    roughness: 0.2,
+    map: abstract.baseColor,
+    normalMap: abstract.normalMap,
+    roughnessMap: abstract.roughness,
+    aoMap: abstract.aoMap,
+    displacementMap: abstract.displacementMap,
+    displacementScale: .15,
+    metalnessMap: abstract.metallic
+})
 
 // Mesh
 const sphere = new THREE.Mesh(geometry,material)
 scene.add(sphere)
 
+const ambient = new THREE.AmbientLight(0xFFFFFF);
+scene.add(ambient);
 // Lights
 
-const pointLight = new THREE.PointLight(0xffffff, 0.1)
-pointLight.position.x = 2
-pointLight.position.y = 3
-pointLight.position.z = 4
+const pointLight = new THREE.PointLight(0xffffff, 2)
+pointLight.position.set(0,0,2);
 scene.add(pointLight)
 
+const pointLight2 = new THREE.PointLight(0xffffff, 1)
+pointLight2.position.set(0,2,0);
+scene.add(pointLight2)
+
+gui.add(sphere.material, "displacementScale").min(-3).max(3).step(0.01);
 /**
  * Sizes
  */
@@ -66,8 +93,8 @@ camera.position.z = 2
 scene.add(camera)
 
 // Controls
-// const controls = new OrbitControls(camera, canvas)
-// controls.enableDamping = true
+const controls = new OrbitControls(camera, canvas)
+controls.enableDamping = true
 
 /**
  * Renderer
