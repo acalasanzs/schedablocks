@@ -1,6 +1,15 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { LUTPass } from 'three/examples/jsm/postprocessing/LUTPass.js';
+import { LUTCubeLoader } from 'three/examples/jsm/loaders/LUTCubeLoader.js';
+import { LUT3dlLoader } from 'three/examples/jsm/loaders/LUT3dlLoader.js';
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 import * as dat from 'dat.gui'
 
 // Loading
@@ -116,7 +125,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 const clock = new THREE.Clock()
 
-const tick = () =>
+const animate = () =>
 {
 
     const elapsedTime = clock.getElapsedTime()
@@ -131,7 +140,7 @@ const tick = () =>
     renderer.render(scene, camera)
 
     // Call tick again on the next frame
-    window.requestAnimationFrame(tick)
+    window.requestAnimationFrame(animate)
 }
 
-tick()
+animate()
