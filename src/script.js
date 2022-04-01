@@ -4,12 +4,14 @@ import gsap from "gsap";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { BleachBypassShader } from 'three/examples/jsm/shaders/BleachBypassShader.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { LUTPass } from 'three/examples/jsm/postprocessing/LUTPass.js';
 import { LUTCubeLoader } from 'three/examples/jsm/loaders/LUTCubeLoader.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
+import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 //import * as dat from 'dat.gui'
 let children = document.getElementsByClassName("sidebar-icon");
 [...children].forEach((reference, i = 0) =>{
@@ -30,9 +32,9 @@ i++;
 });
 
 
-
+var patoLoader, afterimagePass;
 var scene;
-let lutPass, lutMap, mixer;
+let lutPass, lutMap, mixer, action;
 const manager = new THREE.LoadingManager();
 const lut = new LUTCubeLoader().load( 'Bourbon 64.CUBE', function ( result ) {
     lutMap = result;
@@ -125,6 +127,28 @@ const rectLight3 = new THREE.SpotLight( 0x0000ff, 5);
 rectLight3.position.set( 5, 0, 5 );
 scene1.add( rectLight3 );
 
+const ambient = new THREE.AmbientLight(0xFFFFFF);
+scene1.add(ambient);
+
+
+//TITLE
+var fontLoader = new THREE.FontLoader();
+fontLoader.load("font.json", function (font) {
+    let textGeo = new THREE.TextGeometry("Albert\ni\nAleix", {
+        font: font,
+        size: 1,
+        height: 2/10,
+        curveSegments: 1,
+    });
+    let textMat = new THREE.MeshStandardMaterial({
+        map: abstract.baseColor,
+        displacementMap: abstract.displacementMap
+    });
+    let textMesh = new THREE.Mesh(textGeo,textMat);
+    scene1.add(textMesh)
+    textMesh.position.set(-2,-3,-5);
+
+})
 
 
 // GLTF
@@ -194,6 +218,9 @@ controls.update();
 var helmet = {
     scale: 0
 }
+var pato = {
+    scale: 0
+}
 /* drag.addEventListener( 'dragstart', function ( event ) {
     controls.enabled = false;
 
@@ -215,7 +242,23 @@ manager.onLoad = function () {
         gsap.to(helmet, {scale: 0, duration: .5, ease: "ease", onUpdate () {
             mesh[0].scale.set(helmet.scale,helmet.scale,helmet.scale)
         }, onComplete () {
+            
             scene.remove(scene.getObjectByName("helmet"))
+            patoLoader = new GLTFLoader()
+            patoLoader.load('models/patoAlbert2.gltf', gltf => {
+                gltf.scene.position.set(0, -2.5, 0)
+                gltf.scene.rotateY(deg2rad(-90));
+                mixer = new THREE.AnimationMixer( gltf.scene);
+                action = mixer.clipAction(gltf.animations[0]);
+                mesh.push(gltf.scene);
+                scene1.add( gltf.scene );
+                gsap.to(pato, {scale: .75, duration: .5, ease: "easein", onUpdate () {
+                    gltf.scene.scale.set(pato.scale,pato.scale,pato.scale);
+                }, onComplete() {
+                    action.play();
+                }})
+                
+            })
         }})
     }})
 }
@@ -244,26 +287,30 @@ composer.addPass( new RenderPass( scene, camera ) );
 composer.addPass( new ShaderPass( GammaCorrectionShader ) );
 lutPass = new LUTPass();
 composer.addPass( lutPass );
+afterimagePass = new AfterimagePass();
+composer.addPass( afterimagePass );
+composer.addPass( new ShaderPass(BleachBypassShader));
 
-/**
+/*
  * Animate
  */
-var elapsedTime, delta;
+
+
+var delta;
+var clock2 = new THREE.Clock();
 
 const animate = () =>
 {
-    elapsedTime = clock.getElapsedTime();
     delta = clock.getDelta();
     lutPass.enabled = Boolean(LUT.enabled && lutMap != undefined);
     lutPass.intensity = 1;
     if (lutMap) lutPass.lut = lutMap.texture3D;
-    
+    if(afterimagePass.uniforms[ 'damp' ].value > 0) afterimagePass.uniforms[ 'damp' ].value -= 0.001;
+    if (mesh[1]) mesh[1].rotation.y = clock2.getElapsedTime();
     if ( mixer !== undefined ) {
-
         mixer.update( delta );
 
     }
-
     // Update objects
 
     // Update Orbital Controls
