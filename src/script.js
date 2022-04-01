@@ -11,7 +11,26 @@ import { LUTPass } from 'three/examples/jsm/postprocessing/LUTPass.js';
 import { LUTCubeLoader } from 'three/examples/jsm/loaders/LUTCubeLoader.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 //import * as dat from 'dat.gui'
-const game = document.getElementById("game");
+let children = document.getElementsByClassName("sidebar-icon");
+[...children].forEach((reference, i = 0) =>{
+reference.i = i;
+reference.addEventListener("click",(e)=>{
+    e.preventDefault()
+    var duration = .1;
+    var tl = gsap.timeline({onComplete: _=>{
+    reference.style.background = "";
+    reference.querySelector("path").style.fill = "";
+    }})
+    reference.style.background = "var(--color-fantastic-blue)";
+    reference.querySelector("path").style.fill = "#fff";
+    tl.to(reference, duration/4, {scale: 1.2, ease: "easein"})
+    tl.to(reference, duration/2, {scale: 1, ease: "easeout", delay: duration})
+});
+i++;
+});
+
+
+
 var scene;
 let lutPass, lutMap, mixer;
 const manager = new THREE.LoadingManager();
@@ -134,8 +153,8 @@ let scale = {
 
 
 const sizes = {
-    width: game.clientWidth,
-    height: game.clientHeight
+    width: window.innerWidth - 16,
+    height: window.innerHeight
 }
 
 window.addEventListener('resize', () =>
@@ -171,32 +190,25 @@ controls.minDistance = 2;
 controls.maxDistance = 8;
 controls.target.set( 0, 0, - 0.2 );
 controls.update();
-const drag = new DragControls(mesh,camera, canvas)
-
-drag.addEventListener( 'dragstart', function ( event ) {
+//const drag = new DragControls(mesh,camera, canvas)
+var helmet = {
+    scale: 0
+}
+/* drag.addEventListener( 'dragstart', function ( event ) {
     controls.enabled = false;
-    let scale = {
-        set: 1.2
-    }
 
-    gsap.to(scale, {set: 1, duration: 0.2, ease: 'easein', onUpdate () {
+    gsap.to(helmet, {scale: 1, duration: 0.2, ease: 'easein', onUpdate () {
     event.object.scale.set(scale.set,scale.set,scale.set) } });
 
 } );
 drag.addEventListener( 'dragend', function ( event ) {
     controls.enabled = true;
-    let scale = {
-        set: 1
-    }
-    gsap.to(scale, {set: 1.2, duration: 0.2, ease: 'easeout', onUpdate () {
+    gsap.to(helmet, {scale: 1.2, duration: 0.2, ease: 'easeout', onUpdate () {
     event.object.scale.set(scale.set,scale.set,scale.set) } });
-} );
+} ); */
 
 // Animation
 manager.onLoad = function () {
-    var helmet = {
-        scale: 1
-    }
     gsap.to(helmet, {scale: 7, duration: 2.5, ease: "easeout", onUpdate () {
         mesh[0].scale.set(helmet.scale,helmet.scale,helmet.scale)
     }, onComplete () {
