@@ -1,0 +1,11 @@
+Model Information:
+* title:	Vaporwave Mountains
+* source:	https://sketchfab.com/3d-models/vaporwave-mountains-655309efbf7647f9a6f573a1196cfdc9
+* author:	0418.rick (https://sketchfab.com/0418.rick)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Vaporwave Mountains" (https://sketchfab.com/3d-models/vaporwave-mountains-655309efbf7647f9a6f573a1196cfdc9) by 0418.rick (https://sketchfab.com/0418.rick) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
