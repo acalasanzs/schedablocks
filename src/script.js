@@ -31,7 +31,11 @@ i++;
 });
 
 
-
+const deg2rad = function (degrees)
+{
+  var pi = Math.PI;
+  return degrees * (pi/180);
+}
 class Schedablocks {
     constructor(game, w, h) {
 
@@ -44,11 +48,40 @@ class Schedablocks {
         }
         //Prevenir la carrega
         this.LoadingManager = new THREE.LoadingManager();
-        var outerParent = this;
+        this.scene = undefined;
+        // TEXTURES
+        this.textures = { 
+            abstract : {
+                aoMap: textureLoader.load('/images/materials/glass/Glass_Window_003_ambientOcclusion.jpg'),
+                displacementMap: textureLoader.load('/images/materials/glass/Glass_Window_003_height.png'),
+                baseColor: textureLoader.load('/images/materials/glass/Glass_Window_003_basecolor.jpg'),
+                metallic: textureLoader.load('/images/materials/glass/Glass_Window_003_metallic.jpg'),
+                normalMap: textureLoader.load('/images/materials/glass/Glass_Window_003_normal.jpg'),
+                roughness: textureLoader.load('/images/materials/glass/Glass_Window_003_roughness.jpg')
+            }
+        };
+        // MATERIALS
+        this.preMaterials = {
+            abstract : new THREE.MeshStandardMaterial({
+                metalness: 1,
+                roughness: 1,
+                map: abstract.baseColor,
+                normalMap: abstract.normalMap,
+                roughnessMap: abstract.roughness,
+                aoMap: abstract.aoMap,
+                displacementMap: abstract.displacementMap,
+                displacementScale: .15,
+                metalnessMap: abstract.metallic
+            })
+        }
         
-        class Scene0 {
+        this.Scene0 = class {
             constructor(main){
                 this.main = main;
+                this.canvas = main.canvas;
+                this.LoadingManager = main.LoadingManager;
+
+                this.mesh = [];
                 //Efectes especials
                 let efectes = ["lutPass", "lutMap", "afterimagePass"];
 
@@ -58,27 +91,205 @@ class Schedablocks {
                     enabled: true
                 }
                 this.mode = THREE.EquirectangularReflectionMapping;
-
-                let tot = [...efectes,...playback];
-
-                tot.forEach(property => {
+                this.composer = undefined;
+                [...efectes,...playback].forEach(property => {
                     this[property] = undefined;
                 });
 
+                this.helmet = {
+                    scale: 0
+                }
+                this.pato = {
+                    scale: 0
+                }
+
+                this.init();
+            }
+            init() {
                 let lut = new LUTCubeLoader().load( 'Bourbon 64.CUBE', (result, lutMap) => {
                     this.lutMap = result;
                 });
 
+
+                // Scene
+                const bg = textureLoader.load("/images/textures/equirectangular/enhance2.jpg")
+                bg.mapping = mode;
+
+                this.scene = new THREE.Scene()
+                this.scene.background = bg;
+                this.scene.environment = bg;
+
+                //Clock
+                this.clock = new THREE.Clock();
+
+                //Fonts
+                let fontLoader = new THREE.FontLoader();
+                fontLoader.load("font.json", function (font) {
+                    let textGeo = new THREE.TextGeometry("Albert\ni\nAleix", {
+                        font: font,
+                        size: 1,
+                        height: 2/10,
+                        curveSegments: 1,
+                    });
+                    let textMat = new THREE.MeshNormalMaterial();
+                    let textMesh = new THREE.Mesh(textGeo,textMat);
+                    this.scene.add(textMesh)
+                    textMesh.position.set(-2,-3,-5);
+                
+                })
+                // Lights
+
+                const rectLight1 = new THREE.SpotLight( 0xff0000, 2.5);
+                rectLight1.position.set( - 5, 0, -5 );
+                this.scene.add( rectLight1 );
+
+                const rectLight2 = new THREE.SpotLight( 0x00ff00, 2.5);
+                rectLight2.position.set( 0, 0, 5 );
+                this.scene.add( rectLight2 );
+
+                const rectLight3 = new THREE.SpotLight( 0x0000ff, 2.5);
+                rectLight3.position.set( 5, 0, -5 );
+                this.scene.add( rectLight3 );
+
+                const ambient = new THREE.AmbientLight(0xFFFFFF);
+                this.scene.add(ambient);
+
+                // GLTF
+                var mesh = [];
+                const loader = new GLTFLoader(this.LoadingManager).setPath( 'models/DamagedHelmet/glTF/' );
+                loader.load( 'DamagedHelmet.gltf', function ( gltf ) {
+                    scene.add( gltf.scene );
+                    gltf.scene.traverse( (node) => {
+                        if (node.isMesh) 
+                            mesh.push(node)
+                            node.name = "helmet"
+                    });
+
+                } );
+
+                /*
+                 * Camera
+                 */
+                // Base camera
+                this.camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
+                this.camera.position.x = 0
+                this.camera.position.y = 0
+                this.camera.position.z = 2
+                this.camera.position.set(0, 0, 6);
+                this.scene.add(this.camera)
+
+                // Controls
+                this.controls = new OrbitControls(this.camera, this.canvas)
+                this.controls.minDistance = 2;
+                this.controls.maxDistance = 8;
+                this.controls.target.set( 0, 0, - 0.2 );
+                this.controls.addEventListener("change", this.animate);
+
+                window.addEventListener("resize",this.onWindowResize);
+
+                // Animation
+                this.LoadingManager.onLoad = function () {
+                    gsap.to(this.helmet, {scale: 7, duration: 2.5, ease: "easeout", onUpdate () {
+                        this.mesh[0].scale.set(this.helmet.scale,this.helmet.scale,this.helmet.scale)
+                    }, onComplete () {
+                        gsap.to(this.helmet, {scale: 0, duration: .5, ease: "ease", onUpdate () {
+                            this.mesh[0].scale.set(this.helmet.scale,this.helmet.scale,this.helmet.scale)
+                        }, onComplete () {
+                            
+                            this.scene.remove(scene.getObjectByName("helmet"))
+                            this.patoLoader = new GLTFLoader()
+                            this.patoLoader.load('models/patoAlbert2.gltf', gltf => {
+                                gltf.scene.position.set(0, -2.5, 0)
+                                gltf.scene.rotateY(deg2rad(-90));
+                                this.mixer = new THREE.AnimationMixer( gltf.scene);
+                                this.action = mixer.clipAction(gltf.animations[0]);
+                                this.mesh.push(gltf.scene);
+                                this.scene.add( gltf.scene );
+                                gsap.to(this.pato, {scale: .75, duration: .5, ease: "easein", onUpdate () {
+                                    gltf.scene.scale.set(this.pato.scale,this.pato.scale,this.pato.scale);
+                                }, onComplete() {
+                                    this.action.play();
+                                }})
+                                
+                            })
+                        }})
+                    }})
+                }
+                this.renderer = new THREE.WebGLRenderer({canvas: this.canvas, antialias: true});
+                this.renderer.setSize(this.sizes.width, this.sizes.height)
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+                this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                this.renderer.toneMappingExposure = 1;
+
+                this.target = new THREE.WebGLRenderTarget( {
+                    minFilter: THREE.LinearFilter,
+                    magFilter: THREE.LinearFilter,
+                    format: THREE.RGBAFormat,
+                    encoding: THREE.sRGBEncoding
+                } );
+
+                this.composer = new EffectComposer( this.renderer, this.target );
+                this.composer.setPixelRatio( window.devicePixelRatio );
+                this.composer.setSize( this.sizes.width, this.sizes.height );
+                this.composer.addPass( new RenderPass( this.scene, this.camera ) );
+                this.lutPass = new LUTPass();
+                this.composer.addPass( lutPass );
+                this.afterimagePass = new AfterimagePass();
+                this.composer.addPass( afterimagePass );
+                this.composer.addPass( new ShaderPass(BleachBypassShader));
+
+                this.delta = 0;
+                this.clock2 = new THREE.Clock();
+                
+            }
+            onWindowResize() {
+                // Update sizes
+                this.sizes.width = this.canvas.clientWidth
+                this.sizes.height = this.canvas.clientHeight
+
+                // Update camera
+                this.camera.aspect = this.sizes.width / this.sizes.height
+                this.camera.updateProjectionMatrix()
+
+                // Update renderer
+                this.renderer.setSize(this.sizes.width, this.sizes.height)
+                this.composer.setSize( this.sizes.width, this.sizes.height );
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+            }
+            animate() {
+                delta = clock.getDelta();
+                this.lutPass.enabled = Boolean(this.LUT.enabled && this.lutMap != undefined);
+                this.lutPass.intensity = 1;
+                if (this.lutMap) lutPass.lut = this.lutMap.texture3D;
+                if(this.afterimagePass.uniforms[ 'damp' ].value > 0) this.afterimagePass.uniforms[ 'damp' ].value -= 0.001;
+                if (this.mesh[1]) this.mesh[1].rotation.y = this.clock2.getElapsedTime();
+                if ( this.mixer !== undefined ) {
+                    this.mixer.update( this.delta );
+            
+                }
+                // Update objects
+            
+                // Update Orbital Controls
+                this.controls.update()
+            
+                // Render
+                this.composer.render()
+            
+                // Call tick again on the next frame
+                window.requestAnimationFrame(animate)
+            }
+            clear() {
+                this.controls.removeEventListener("change", this.animate);
+                window.removeEventListener("resize",this.onWindowResize);
+                window.cancelAnimationFrame(this.animate);
             }
         }
-
-        this.Scene0 = new Scene0(this);
-
-
-        this.scene = undefined;
-
+        this.init();
     }
-
+    init() {
+        this.firstScene = new this.Scene0(this);
+        firstScene.animate();
+    }
     fireParticleShader1 () {
         return {
             vertex : `
@@ -107,282 +318,7 @@ class Schedablocks {
         }
     }
 }
-console.log(new Schedablocks("asd"))
 
-var patoLoader, afterimagePass;
-var scene;
-let lutPass, lutMap, mixer, action;
-const manager = new THREE.LoadingManager();
-const lut = new LUTCubeLoader().load( 'Bourbon 64.CUBE', function ( result ) {
-    lutMap = result;
-} );
-let LUT = {
-    enabled: true
-}
+//Initialize first scene
 
-const deg2rad = function (degrees)
-{
-  var pi = Math.PI;
-  return degrees * (pi/180);
-}
-// Loading
-const textureLoader = new THREE.TextureLoader();
-let mode = THREE.EquirectangularReflectionMapping;
-
-// Canvas
-const canvas = document.querySelector('canvas.webgl')
-let composer;
-
-// Scene
-const bg = textureLoader.load("/images/textures/equirectangular/enhance2.jpg")
-bg.mapping = mode;
-
-const scene1 = new THREE.Scene()
-scene = scene1;
-scene.background = bg;
-scene.environment = bg;
-
-// Clock
-const clock = new THREE.Clock()
-
-
-
-
-
-// TEXTURES
-const abstract = {
-    aoMap: textureLoader.load('/images/materials/glass/Glass_Window_003_ambientOcclusion.jpg'),
-    displacementMap: textureLoader.load('/images/materials/glass/Glass_Window_003_height.png'),
-    baseColor: textureLoader.load('/images/materials/glass/Glass_Window_003_basecolor.jpg'),
-    metallic: textureLoader.load('/images/materials/glass/Glass_Window_003_metallic.jpg'),
-    normalMap: textureLoader.load('/images/materials/glass/Glass_Window_003_normal.jpg'),
-    roughness: textureLoader.load('/images/materials/glass/Glass_Window_003_roughness.jpg')
-}
-
-// MATERIALS
-const material = new THREE.MeshStandardMaterial({
-    metalness: 1,
-    roughness: 1,
-    map: abstract.baseColor,
-    normalMap: abstract.normalMap,
-    roughnessMap: abstract.roughness,
-    aoMap: abstract.aoMap,
-    displacementMap: abstract.displacementMap,
-    displacementScale: .15,
-    metalnessMap: abstract.metallic
-})
-
-
-
-
-
-
-
-
-// Debug
-//const gui = new dat.GUI()
-
-
-
-
-
-
-
-
-
-// Lights
-
-const rectLight1 = new THREE.SpotLight( 0xff0000, 2.5);
-rectLight1.position.set( - 5, 0, -5 );
-scene.add( rectLight1 );
-
-const rectLight2 = new THREE.SpotLight( 0x00ff00, 2.5);
-rectLight2.position.set( 0, 0, 5 );
-scene.add( rectLight2 );
-
-const rectLight3 = new THREE.SpotLight( 0x0000ff, 2.5);
-rectLight3.position.set( 5, 0, -5 );
-scene.add( rectLight3 );
-
-const ambient = new THREE.AmbientLight(0xFFFFFF);
-scene.add(ambient);
-
-let helper1 = new THREE.SpotLightHelper(rectLight1);
-
-
-//TITLE
-var fontLoader = new THREE.FontLoader();
-fontLoader.load("font.json", function (font) {
-    let textGeo = new THREE.TextGeometry("Albert\ni\nAleix", {
-        font: font,
-        size: 1,
-        height: 2/10,
-        curveSegments: 1,
-    });
-    let textMat = new THREE.MeshNormalMaterial();
-    let textMesh = new THREE.Mesh(textGeo,textMat);
-    scene1.add(textMesh)
-    textMesh.position.set(-2,-3,-5);
-
-})
-
-
-// GLTF
-var mesh = [];
-const loader = new GLTFLoader(manager).setPath( 'models/DamagedHelmet/glTF/' );
-loader.load( 'DamagedHelmet.gltf', function ( gltf ) {
-    scene.add( gltf.scene );
-    gltf.scene.traverse( (node) => {
-        if (node.isMesh) 
-            mesh.push(node)
-            node.name = "helmet"
-    });
-
-} );
-
-// Mesh
-//const sphere = new THREE.Mesh(geometry,material)
-//scene.add(sphere);
-
-
-let scale = {
-    set: 1.5
-}
-
-//gui.add(sphere.material, "displacementScale").min(-3).max(3).step(0.01);
-
-
-const sizes = {
-    width: window.innerWidth - 16,
-    height: window.innerHeight
-}
-
-window.addEventListener('resize', () =>
-{
-    // Update sizes
-    sizes.width = window.innerWidth
-    sizes.height = window.innerHeight
-
-    // Update camera
-    camera.aspect = sizes.width / sizes.height
-    camera.updateProjectionMatrix()
-
-    // Update renderer
-    renderer.setSize(sizes.width, sizes.height)
-    composer.setSize( window.innerWidth, window.innerHeight );
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-})
-
-/**
- * Camera
- */
-// Base camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.x = 0
-camera.position.y = 0
-camera.position.z = 2
-camera.position.set(0, 0, 6);
-scene.add(camera)
-
-// Controls
-const controls = new OrbitControls(camera, canvas)
-controls.minDistance = 2;
-controls.maxDistance = 8;
-controls.target.set( 0, 0, - 0.2 );
-controls.update();
-var helmet = {
-    scale: 0
-}
-var pato = {
-    scale: 0
-}
-
-// Animation
-manager.onLoad = function () {
-    gsap.to(helmet, {scale: 7, duration: 2.5, ease: "easeout", onUpdate () {
-        mesh[0].scale.set(helmet.scale,helmet.scale,helmet.scale)
-    }, onComplete () {
-        gsap.to(helmet, {scale: 0, duration: .5, ease: "ease", onUpdate () {
-            mesh[0].scale.set(helmet.scale,helmet.scale,helmet.scale)
-        }, onComplete () {
-            
-            scene.remove(scene.getObjectByName("helmet"))
-            patoLoader = new GLTFLoader()
-            patoLoader.load('models/patoAlbert2.gltf', gltf => {
-                gltf.scene.position.set(0, -2.5, 0)
-                gltf.scene.rotateY(deg2rad(-90));
-                mixer = new THREE.AnimationMixer( gltf.scene);
-                action = mixer.clipAction(gltf.animations[0]);
-                mesh.push(gltf.scene);
-                scene.add( gltf.scene );
-                gsap.to(pato, {scale: .75, duration: .5, ease: "easein", onUpdate () {
-                    gltf.scene.scale.set(pato.scale,pato.scale,pato.scale);
-                }, onComplete() {
-                    action.play();
-                }})
-                
-            })
-        }})
-    }})
-}
-
-
-/**
- * Renderer
- */
-const renderer = new THREE.WebGLRenderer({
-    canvas: canvas, antialias: true
-})
-renderer.setSize(sizes.width, sizes.height)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1;
-const target = new THREE.WebGLRenderTarget( {
-    minFilter: THREE.LinearFilter,
-    magFilter: THREE.LinearFilter,
-    format: THREE.RGBAFormat,
-    encoding: THREE.sRGBEncoding
-} );
-composer = new EffectComposer( renderer, target );
-composer.setPixelRatio( window.devicePixelRatio );
-composer.setSize( window.innerWidth, window.innerHeight );
-composer.addPass( new RenderPass( scene, camera ) );
-lutPass = new LUTPass();
-composer.addPass( lutPass );
-afterimagePass = new AfterimagePass();
-composer.addPass( afterimagePass );
-composer.addPass( new ShaderPass(BleachBypassShader));
-
-/*
- * Animate
- */
-
-
-var delta;
-var clock2 = new THREE.Clock();
-
-const animate = () =>
-{
-    delta = clock.getDelta();
-    lutPass.enabled = Boolean(LUT.enabled && lutMap != undefined);
-    lutPass.intensity = 1;
-    if (lutMap) lutPass.lut = lutMap.texture3D;
-    if(afterimagePass.uniforms[ 'damp' ].value > 0) afterimagePass.uniforms[ 'damp' ].value -= 0.001;
-    if (mesh[1]) mesh[1].rotation.y = clock2.getElapsedTime();
-    if ( mixer !== undefined ) {
-        mixer.update( delta );
-
-    }
-    // Update objects
-
-    // Update Orbital Controls
-    controls.update()
-
-    // Render
-    composer.render()
-
-    // Call tick again on the next frame
-    window.requestAnimationFrame(animate)
-}
-
-animate()
+const Schedablocks = new Schedablocks(document.querySelector("canvas.webgl"));
