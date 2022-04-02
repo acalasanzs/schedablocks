@@ -2,7 +2,6 @@ import './style.css'
 import * as THREE from 'three'
 import gsap from "gsap";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { BleachBypassShader } from 'three/examples/jsm/shaders/BleachBypassShader.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -10,8 +9,33 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { LUTPass } from 'three/examples/jsm/postprocessing/LUTPass.js';
 import { LUTCubeLoader } from 'three/examples/jsm/loaders/LUTCubeLoader.js';
-import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js';
+
+const _VS = `
+uniform float pointMultiplier;
+attribute float size;
+attribute float angle;
+attribute vec4 colour;
+varying vec4 vColour;
+varying vec2 vAngle;
+void main() {
+  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+  gl_Position = projectionMatrix * mvPosition;
+  gl_PointSize = size * pointMultiplier / gl_Position.w;
+  vAngle = vec2(cos(angle), sin(angle));
+  vColour = colour;
+}`;
+
+const _FS = `
+uniform sampler2D diffuseTexture;
+varying vec4 vColour;
+varying vec2 vAngle;
+void main() {
+  vec2 coords = (gl_PointCoord - 0.5) * mat2(vAngle.x, vAngle.y, -vAngle.y, vAngle.x) + 0.5;
+  gl_FragColor = texture2D(diffuseTexture, coords) * vColour;
+}`;
+
+
 //import * as dat from 'dat.gui'
 let children = document.getElementsByClassName("sidebar-icon");
 [...children].forEach((reference, i = 0) =>{
@@ -57,13 +81,13 @@ const canvas = document.querySelector('canvas.webgl')
 let composer;
 
 // Scene
-const bg = textureLoader.load("/images/textures/equirectangular/menu.png")
+const bg = textureLoader.load("/images/textures/equirectangular/enhance2.jpg")
 bg.mapping = mode;
 
 const scene1 = new THREE.Scene()
 scene = scene1;
-scene1.background = bg;
-scene1.environment = bg;
+scene.background = bg;
+scene.environment = bg;
 
 // Clock
 const clock = new THREE.Clock()
@@ -115,20 +139,22 @@ const material = new THREE.MeshStandardMaterial({
 
 // Lights
 
-const rectLight1 = new THREE.SpotLight( 0xff0000, 5);
-rectLight1.position.set( - 5, 0, 5 );
-scene1.add( rectLight1 );
+const rectLight1 = new THREE.SpotLight( 0xff0000, 2.5);
+rectLight1.position.set( - 5, 0, -5 );
+scene.add( rectLight1 );
 
-const rectLight2 = new THREE.SpotLight( 0x00ff00, 5);
+const rectLight2 = new THREE.SpotLight( 0x00ff00, 2.5);
 rectLight2.position.set( 0, 0, 5 );
-scene1.add( rectLight2 );
+scene.add( rectLight2 );
 
-const rectLight3 = new THREE.SpotLight( 0x0000ff, 5);
-rectLight3.position.set( 5, 0, 5 );
-scene1.add( rectLight3 );
+const rectLight3 = new THREE.SpotLight( 0x0000ff, 2.5);
+rectLight3.position.set( 5, 0, -5 );
+scene.add( rectLight3 );
 
 const ambient = new THREE.AmbientLight(0xFFFFFF);
-scene1.add(ambient);
+scene.add(ambient);
+
+let helper1 = new THREE.SpotLightHelper(rectLight1);
 
 
 //TITLE
@@ -140,10 +166,7 @@ fontLoader.load("font.json", function (font) {
         height: 2/10,
         curveSegments: 1,
     });
-    let textMat = new THREE.MeshStandardMaterial({
-        map: abstract.baseColor,
-        displacementMap: abstract.displacementMap
-    });
+    let textMat = new THREE.MeshNormalMaterial();
     let textMesh = new THREE.Mesh(textGeo,textMat);
     scene1.add(textMesh)
     textMesh.position.set(-2,-3,-5);
@@ -155,7 +178,7 @@ fontLoader.load("font.json", function (font) {
 var mesh = [];
 const loader = new GLTFLoader(manager).setPath( 'models/DamagedHelmet/glTF/' );
 loader.load( 'DamagedHelmet.gltf', function ( gltf ) {
-    scene1.add( gltf.scene );
+    scene.add( gltf.scene );
     gltf.scene.traverse( (node) => {
         if (node.isMesh) 
             mesh.push(node)
@@ -206,7 +229,7 @@ camera.position.x = 0
 camera.position.y = 0
 camera.position.z = 2
 camera.position.set(0, 0, 6);
-scene1.add(camera)
+scene.add(camera)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
@@ -214,25 +237,12 @@ controls.minDistance = 2;
 controls.maxDistance = 8;
 controls.target.set( 0, 0, - 0.2 );
 controls.update();
-//const drag = new DragControls(mesh,camera, canvas)
 var helmet = {
     scale: 0
 }
 var pato = {
     scale: 0
 }
-/* drag.addEventListener( 'dragstart', function ( event ) {
-    controls.enabled = false;
-
-    gsap.to(helmet, {scale: 1, duration: 0.2, ease: 'easein', onUpdate () {
-    event.object.scale.set(scale.set,scale.set,scale.set) } });
-
-} );
-drag.addEventListener( 'dragend', function ( event ) {
-    controls.enabled = true;
-    gsap.to(helmet, {scale: 1.2, duration: 0.2, ease: 'easeout', onUpdate () {
-    event.object.scale.set(scale.set,scale.set,scale.set) } });
-} ); */
 
 // Animation
 manager.onLoad = function () {
@@ -251,7 +261,7 @@ manager.onLoad = function () {
                 mixer = new THREE.AnimationMixer( gltf.scene);
                 action = mixer.clipAction(gltf.animations[0]);
                 mesh.push(gltf.scene);
-                scene1.add( gltf.scene );
+                scene.add( gltf.scene );
                 gsap.to(pato, {scale: .75, duration: .5, ease: "easein", onUpdate () {
                     gltf.scene.scale.set(pato.scale,pato.scale,pato.scale);
                 }, onComplete() {
@@ -284,7 +294,6 @@ composer = new EffectComposer( renderer, target );
 composer.setPixelRatio( window.devicePixelRatio );
 composer.setSize( window.innerWidth, window.innerHeight );
 composer.addPass( new RenderPass( scene, camera ) );
-composer.addPass( new ShaderPass( GammaCorrectionShader ) );
 lutPass = new LUTPass();
 composer.addPass( lutPass );
 afterimagePass = new AfterimagePass();
