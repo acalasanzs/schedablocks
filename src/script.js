@@ -11,31 +11,6 @@ import { LUTPass } from 'three/examples/jsm/postprocessing/LUTPass.js';
 import { LUTCubeLoader } from 'three/examples/jsm/loaders/LUTCubeLoader.js';
 import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 
-const _VS = `
-uniform float pointMultiplier;
-attribute float size;
-attribute float angle;
-attribute vec4 colour;
-varying vec4 vColour;
-varying vec2 vAngle;
-void main() {
-  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-  gl_Position = projectionMatrix * mvPosition;
-  gl_PointSize = size * pointMultiplier / gl_Position.w;
-  vAngle = vec2(cos(angle), sin(angle));
-  vColour = colour;
-}`;
-
-const _FS = `
-uniform sampler2D diffuseTexture;
-varying vec4 vColour;
-varying vec2 vAngle;
-void main() {
-  vec2 coords = (gl_PointCoord - 0.5) * mat2(vAngle.x, vAngle.y, -vAngle.y, vAngle.x) + 0.5;
-  gl_FragColor = texture2D(diffuseTexture, coords) * vColour;
-}`;
-
-
 //import * as dat from 'dat.gui'
 let children = document.getElementsByClassName("sidebar-icon");
 [...children].forEach((reference, i = 0) =>{
@@ -55,6 +30,84 @@ reference.addEventListener("click",(e)=>{
 i++;
 });
 
+
+
+class Schedablocks {
+    constructor(game, w, h) {
+
+        // Posar el canvas webgl
+        this.canvas = game;
+        //Posar les mides en un objecte
+        this.sizes = {
+            width: w ? w : this.canvas.clientWidth,
+            height: h ? h : this.canvas.clientHeight
+        }
+        //Prevenir la carrega
+        this.LoadingManager = new THREE.LoadingManager();
+        var outerParent = this;
+        
+        class Scene0 {
+            constructor(main){
+                this.main = main;
+                //Efectes especials
+                let efectes = ["lutPass", "lutMap", "afterimagePass"];
+
+                let playback = ["mixer", "action"];
+
+                this.LUT = {
+                    enabled: true
+                }
+                this.mode = THREE.EquirectangularReflectionMapping;
+
+                let tot = [...efectes,...playback];
+
+                tot.forEach(property => {
+                    this[property] = undefined;
+                });
+
+                let lut = new LUTCubeLoader().load( 'Bourbon 64.CUBE', (result, lutMap) => {
+                    this.lutMap = result;
+                });
+
+            }
+        }
+
+        this.Scene0 = new Scene0(this);
+
+
+        this.scene = undefined;
+
+    }
+
+    fireParticleShader1 () {
+        return {
+            vertex : `
+            uniform float pointMultiplier;
+            attribute float size;
+            attribute float angle;
+            attribute vec4 colour;
+            varying vec4 vColour;
+            varying vec2 vAngle;
+            void main() {
+              vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+              gl_Position = projectionMatrix * mvPosition;
+              gl_PointSize = size * pointMultiplier / gl_Position.w;
+              vAngle = vec2(cos(angle), sin(angle));
+              vColour = colour;
+            }`,
+            
+            fragment : `
+            uniform sampler2D diffuseTexture;
+            varying vec4 vColour;
+            varying vec2 vAngle;
+            void main() {
+              vec2 coords = (gl_PointCoord - 0.5) * mat2(vAngle.x, vAngle.y, -vAngle.y, vAngle.x) + 0.5;
+              gl_FragColor = texture2D(diffuseTexture, coords) * vColour;
+            }`
+        }
+    }
+}
+console.log(new Schedablocks("asd"))
 
 var patoLoader, afterimagePass;
 var scene;
