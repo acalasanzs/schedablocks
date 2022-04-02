@@ -48,16 +48,16 @@ class Schedablocks {
         }
         //Prevenir la carrega
         this.LoadingManager = new THREE.LoadingManager();
-        this.scene = undefined;
+        this.textureLoader = new THREE.TextureLoader(this.LoadingManager);
         // TEXTURES
         this.textures = { 
             abstract : {
-                aoMap: textureLoader.load('/images/materials/glass/Glass_Window_003_ambientOcclusion.jpg'),
-                displacementMap: textureLoader.load('/images/materials/glass/Glass_Window_003_height.png'),
-                baseColor: textureLoader.load('/images/materials/glass/Glass_Window_003_basecolor.jpg'),
-                metallic: textureLoader.load('/images/materials/glass/Glass_Window_003_metallic.jpg'),
-                normalMap: textureLoader.load('/images/materials/glass/Glass_Window_003_normal.jpg'),
-                roughness: textureLoader.load('/images/materials/glass/Glass_Window_003_roughness.jpg')
+                aoMap: this.textureLoader.load('/images/materials/glass/Glass_Window_003_ambientOcclusion.jpg'),
+                displacementMap: this.textureLoader.load('/images/materials/glass/Glass_Window_003_height.png'),
+                baseColor: this.textureLoader.load('/images/materials/glass/Glass_Window_003_basecolor.jpg'),
+                metallic: this.textureLoader.load('/images/materials/glass/Glass_Window_003_metallic.jpg'),
+                normalMap: this.textureLoader.load('/images/materials/glass/Glass_Window_003_normal.jpg'),
+                roughness: this.textureLoader.load('/images/materials/glass/Glass_Window_003_roughness.jpg')
             }
         };
         // MATERIALS
@@ -65,20 +65,22 @@ class Schedablocks {
             abstract : new THREE.MeshStandardMaterial({
                 metalness: 1,
                 roughness: 1,
-                map: abstract.baseColor,
-                normalMap: abstract.normalMap,
-                roughnessMap: abstract.roughness,
-                aoMap: abstract.aoMap,
-                displacementMap: abstract.displacementMap,
+                map: this.textures.abstract.baseColor,
+                normalMap: this.textures.abstract.normalMap,
+                roughnessMap: this.textures.abstract.roughness,
+                aoMap: this.textures.abstract.aoMap,
+                displacementMap: this.textures.abstract.displacementMap,
                 displacementScale: .15,
-                metalnessMap: abstract.metallic
+                metalnessMap: this.textures.abstract.metallic
             })
         }
         
         this.Scene0 = class {
             constructor(main){
+                this.sizes = main.sizes;
                 this.main = main;
                 this.canvas = main.canvas;
+                this.textureLoader = main.textureLoader;
                 this.LoadingManager = main.LoadingManager;
 
                 this.mesh = [];
@@ -112,8 +114,8 @@ class Schedablocks {
 
 
                 // Scene
-                const bg = textureLoader.load("/images/textures/equirectangular/enhance2.jpg")
-                bg.mapping = mode;
+                const bg = this.textureLoader.load("/images/textures/equirectangular/enhance2.jpg")
+                bg.mapping = this.mode;
 
                 this.scene = new THREE.Scene()
                 this.scene.background = bg;
@@ -124,7 +126,7 @@ class Schedablocks {
 
                 //Fonts
                 let fontLoader = new THREE.FontLoader();
-                fontLoader.load("font.json", function (font) {
+                fontLoader.load("font.json", font => {
                     let textGeo = new THREE.TextGeometry("Albert\ni\nAleix", {
                         font: font,
                         size: 1,
@@ -156,12 +158,12 @@ class Schedablocks {
 
                 // GLTF
                 var mesh = [];
-                const loader = new GLTFLoader(this.LoadingManager).setPath( 'models/DamagedHelmet/glTF/' );
-                loader.load( 'DamagedHelmet.gltf', function ( gltf ) {
-                    scene.add( gltf.scene );
+                this.GLTFloader = new GLTFLoader(this.LoadingManager);
+                this.GLTFloader.setPath( 'models/DamagedHelmet/glTF/' ).load( 'DamagedHelmet.gltf', gltf => {
+                    this.scene.add( gltf.scene );
                     gltf.scene.traverse( (node) => {
                         if (node.isMesh) 
-                            mesh.push(node)
+                            this.mesh.push(node)
                             node.name = "helmet"
                     });
 
@@ -171,7 +173,7 @@ class Schedablocks {
                  * Camera
                  */
                 // Base camera
-                this.camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
+                this.camera = new THREE.PerspectiveCamera(75, this.sizes.width / this.sizes.height, 0.1, 100)
                 this.camera.position.x = 0
                 this.camera.position.y = 0
                 this.camera.position.z = 2
@@ -187,28 +189,29 @@ class Schedablocks {
 
                 window.addEventListener("resize",this.onWindowResize);
 
+                let whoami = this;
                 // Animation
                 this.LoadingManager.onLoad = function () {
-                    gsap.to(this.helmet, {scale: 7, duration: 2.5, ease: "easeout", onUpdate () {
-                        this.mesh[0].scale.set(this.helmet.scale,this.helmet.scale,this.helmet.scale)
+                    gsap.to(whoami.helmet, {scale: 7, duration: 2.5, ease: "easeout", onUpdate () {
+                        whoami.mesh[0].scale.set(whoami.helmet.scale,whoami.helmet.scale,whoami.helmet.scale)
                     }, onComplete () {
-                        gsap.to(this.helmet, {scale: 0, duration: .5, ease: "ease", onUpdate () {
-                            this.mesh[0].scale.set(this.helmet.scale,this.helmet.scale,this.helmet.scale)
+                        gsap.to(whoami.helmet, {scale: 0, duration: .5, ease: "ease", onUpdate () {
+                            whoami.mesh[0].scale.set(whoami.helmet.scale,whoami.helmet.scale,whoami.helmet.scale)
                         }, onComplete () {
                             
-                            this.scene.remove(scene.getObjectByName("helmet"))
-                            this.patoLoader = new GLTFLoader()
-                            this.patoLoader.load('models/patoAlbert2.gltf', gltf => {
+                            whoami.scene.remove(whoami.scene.getObjectByName("helmet"))
+                            whoami.patoLoader = new GLTFLoader()
+                            whoami.patoLoader.load('models/patoAlbert2.gltf', gltf => {
                                 gltf.scene.position.set(0, -2.5, 0)
                                 gltf.scene.rotateY(deg2rad(-90));
-                                this.mixer = new THREE.AnimationMixer( gltf.scene);
-                                this.action = mixer.clipAction(gltf.animations[0]);
-                                this.mesh.push(gltf.scene);
-                                this.scene.add( gltf.scene );
-                                gsap.to(this.pato, {scale: .75, duration: .5, ease: "easein", onUpdate () {
-                                    gltf.scene.scale.set(this.pato.scale,this.pato.scale,this.pato.scale);
+                                whoami.mixer = new THREE.AnimationMixer( gltf.scene);
+                                whoami.action = whoami.mixer.clipAction(gltf.animations[0]);
+                                whoami.mesh.push(gltf.scene);
+                                whoami.scene.add( gltf.scene );
+                                gsap.to(whoami.pato, {scale: .75, duration: .5, ease: "easein", onUpdate () {
+                                    gltf.scene.scale.set(whoami.pato.scale,whoami.pato.scale,whoami.pato.scale);
                                 }, onComplete() {
-                                    this.action.play();
+                                    whoami.action.play();
                                 }})
                                 
                             })
@@ -233,12 +236,12 @@ class Schedablocks {
                 this.composer.setSize( this.sizes.width, this.sizes.height );
                 this.composer.addPass( new RenderPass( this.scene, this.camera ) );
                 this.lutPass = new LUTPass();
-                this.composer.addPass( lutPass );
+                this.composer.addPass( this.lutPass );
                 this.afterimagePass = new AfterimagePass();
-                this.composer.addPass( afterimagePass );
+                this.composer.addPass( this.afterimagePass );
                 this.composer.addPass( new ShaderPass(BleachBypassShader));
 
-                this.delta = 0;
+                this.delta = undefined;
                 this.clock2 = new THREE.Clock();
                 
             }
@@ -257,26 +260,30 @@ class Schedablocks {
                 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
             }
             animate() {
-                delta = clock.getDelta();
-                this.lutPass.enabled = Boolean(this.LUT.enabled && this.lutMap != undefined);
-                this.lutPass.intensity = 1;
-                if (this.lutMap) lutPass.lut = this.lutMap.texture3D;
-                if(this.afterimagePass.uniforms[ 'damp' ].value > 0) this.afterimagePass.uniforms[ 'damp' ].value -= 0.001;
-                if (this.mesh[1]) this.mesh[1].rotation.y = this.clock2.getElapsedTime();
-                if ( this.mixer !== undefined ) {
-                    this.mixer.update( this.delta );
-            
-                }
-                // Update objects
-            
-                // Update Orbital Controls
-                this.controls.update()
-            
-                // Render
-                this.composer.render()
-            
-                // Call tick again on the next frame
-                window.requestAnimationFrame(animate)
+                window.requestAnimationFrame((t) => {
+                    this.delta = this.clock.getDelta();
+                    this.lutPass.enabled = Boolean(this.LUT.enabled && this.lutMap != undefined);
+                    this.lutPass.intensity = 1;
+                    if (this.lutMap) this.lutPass.lut = this.lutMap.texture3D;
+                    if(this.afterimagePass.uniforms[ 'damp' ].value > 0) this.afterimagePass.uniforms[ 'damp' ].value -= 0.001;
+                    if (this.mesh[1]) this.mesh[1].rotation.y = this.clock2.getElapsedTime();
+                    if ( this.mixer !== undefined ) {
+                        this.mixer.update( this.delta );
+                
+                    }
+                    // Update objects
+                
+                    // Update Orbital Controls
+                    this.controls.update()
+                
+                    // Render
+                    this.composer.render()
+                
+                    // Call tick again on the next frame
+                    window.requestAnimationFrame(_=>{
+                        this.animate(this)
+                    })
+                })
             }
             clear() {
                 this.controls.removeEventListener("change", this.animate);
@@ -288,7 +295,7 @@ class Schedablocks {
     }
     init() {
         this.firstScene = new this.Scene0(this);
-        firstScene.animate();
+        this.firstScene.animate();
     }
     fireParticleShader1 () {
         return {
@@ -321,4 +328,4 @@ class Schedablocks {
 
 //Initialize first scene
 
-const Schedablocks = new Schedablocks(document.querySelector("canvas.webgl"));
+const schedablocks = new Schedablocks(document.querySelector("canvas.webgl"));
