@@ -60,7 +60,6 @@ class Schedablocks {
                 loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
             }
         };
-        console.log(this.LoadingManager);
         this.textureLoader = new THREE.TextureLoader(this.LoadingManager);
         // TEXTURES
         this.textures = { 
@@ -121,6 +120,7 @@ class Schedablocks {
                 this.init();
             }
             init() {
+                console.log(this.canvas)
                 let lut = new LUTCubeLoader().load( 'Bourbon 64.CUBE', (result, lutMap) => {
                     this.lutMap = result;
                 });
@@ -295,8 +295,20 @@ class Schedablocks {
                 })
             }
             clear() {
-                this.controls.removeEventListener("change", this.animate);
-                window.cancelAnimationFrame(this.animate);
+                let parent = this.canvas.parentNode;
+                this.canvas.remove();
+                let recreate = new Promise ((resolve, reject) => {
+                    let canvas = document.createElement("canvas");
+                    canvas.className = "webgl";
+                    parent.appendChild(canvas);
+                    this.canvas = canvas;
+                    if (document.querySelector("canvas")) resolve();
+                });
+                recreate.then(_=>{
+                    this.main.canvas = document.querySelector("canvas");
+                    return true
+                })
+                delete this.main.default;
             }
         }
         this.init();
@@ -335,14 +347,28 @@ class Schedablocks {
 }
 
 //Initialize first scene
+var schedablocks;
 document.addEventListener("DOMContentLoaded", _=>{
-    const schedablocks = new Schedablocks(document.querySelector("canvas.webgl"), window.innerWidth-16,window.innerHeight);
-
+    schedablocks = new Schedablocks(document.querySelector("canvas.webgl"), window.innerWidth-16,window.innerHeight);
+    console.log("This is my super object:");
+    console.log(schedablocks);
     children[0].addEventListener("click",_=>{
-        schedablocks.default.clear();
+        let recreate = new Promise((resolve,reject) =>{
+            let promise = schedablocks.default.clear()
+            if (document.querySelector("canvas.webgl")) resolve();
+        });
+        recreate.then(_=>{
+            schedablocks.init()
+        })
     })
     children[1].addEventListener("click",_=>{
-    
+        let recreate = new Promise((resolve,reject) =>{
+            let promise = schedablocks.default.clear()
+            if (document.querySelector("canvas.webgl")) resolve();
+        });
+        recreate.then(_=>{
+            schedablocks.init()
+        })
     })
     children[2].addEventListener("click",_=>{
         location.replace("https://youtu.be/dQw4w9WgXcQ");
