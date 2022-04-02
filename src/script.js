@@ -43,8 +43,8 @@ class Schedablocks {
         this.canvas = game;
         //Posar les mides en un objecte
         this.sizes = {
-            width: w ? w : this.canvas.clientWidth,
-            height: h ? h : this.canvas.clientHeight
+            width: w ? w : this.canvas.parentNode.clientWidth,
+            height: h ? h : this.canvas.parentNode.clientHeight
         }
         //Prevenir la carrega
         this.LoadingManager = new THREE.LoadingManager();
@@ -185,9 +185,20 @@ class Schedablocks {
                 this.controls.minDistance = 2;
                 this.controls.maxDistance = 8;
                 this.controls.target.set( 0, 0, - 0.2 );
-                this.controls.addEventListener("change", this.animate);
 
-                window.addEventListener("resize",this.onWindowResize);
+                window.addEventListener("resize",_=>{
+                    this.sizes.width = this.canvas.parentNode.clientWidth
+                    this.sizes.height = this.canvas.parentNode.clientHeight
+    
+                    // Update camera
+                    this.camera.aspect = this.sizes.width / this.sizes.height
+                    this.camera.updateProjectionMatrix()
+    
+                    // Update renderer
+                    this.renderer.setSize(this.sizes.width, this.sizes.height)
+                    this.composer.setSize( this.sizes.width, this.sizes.height );
+                    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+                });
 
                 let whoami = this;
                 // Animation
@@ -243,21 +254,9 @@ class Schedablocks {
 
                 this.delta = undefined;
                 this.clock2 = new THREE.Clock();
+
                 
-            }
-            onWindowResize() {
-                // Update sizes
-                this.sizes.width = this.canvas.clientWidth
-                this.sizes.height = this.canvas.clientHeight
-
-                // Update camera
-                this.camera.aspect = this.sizes.width / this.sizes.height
-                this.camera.updateProjectionMatrix()
-
-                // Update renderer
-                this.renderer.setSize(this.sizes.width, this.sizes.height)
-                this.composer.setSize( this.sizes.width, this.sizes.height );
-                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+                
             }
             animate() {
                 window.requestAnimationFrame((t) => {
@@ -273,9 +272,6 @@ class Schedablocks {
                     }
                     // Update objects
                 
-                    // Update Orbital Controls
-                    this.controls.update()
-                
                     // Render
                     this.composer.render()
                 
@@ -287,7 +283,6 @@ class Schedablocks {
             }
             clear() {
                 this.controls.removeEventListener("change", this.animate);
-                window.removeEventListener("resize",this.onWindowResize);
                 window.cancelAnimationFrame(this.animate);
             }
         }
