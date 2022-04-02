@@ -10,9 +10,14 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { LUTPass } from 'three/examples/jsm/postprocessing/LUTPass.js';
 import { LUTCubeLoader } from 'three/examples/jsm/loaders/LUTCubeLoader.js';
 import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js';
+import SimplexNoise from 'simplex-noise';
+import * as Stats from 'stats-js';
 const loadingScreen = document.getElementById("loading-screen");
+const songs = ["music/head.mp3","music/through.mp3","music/weekend.mp3","music/nandemonaiya.mp3","music/faking.mp3","music/older.mp3","music/notsobad.mp3","music/monogatari.mp3","music/bakamitai.mp3","music/levels.mp3","music/toby.mp3","music/crush.mp3","music/flutter.mp3","music/funny.mp3","music/Luke Chiang - May I Ask (feat. Alexis Kim).mp3","music/Modern Talking - Brother Louie.mp3","music/Ruel - Painkiller.mp3"];
+
 //import * as dat from 'dat.gui'
 let children = document.getElementsByClassName("sidebar-icon");
+var analyser, target;
 [...children].forEach((reference) =>{
 reference.addEventListener("click",(e)=>{
     e.preventDefault()
@@ -27,6 +32,15 @@ reference.addEventListener("click",(e)=>{
     tl.to(reference, duration/2, {scale: 1, ease: "easeout", delay: duration})
 });
 });
+
+function createMaterialArray(skyboxImagepaths) {
+    const materialArray = skyboxImagepaths.map(image => {
+      let texture = new THREE.TextureLoader().load(image);
+    
+      return new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide});
+    });
+    return materialArray;
+}
 
 const deg2rad = function (degrees)
 {
@@ -120,7 +134,467 @@ class Schedablocks {
                 this.init();
             }
             init() {
-                console.log(this.canvas)
+                let lut = new LUTCubeLoader().load( 'Bourbon 64.CUBE', (result, lutMap) => {
+                    this.lutMap = result;
+                });
+
+
+                // Scene
+                const bg = this.textureLoader.load("/images/textures/equirectangular/enhance2.jpg")
+                bg.mapping = this.mode;
+
+                this.scene = new THREE.Scene()
+                this.scene.background = bg;
+                this.scene.environment = bg;
+
+                //Clock
+                this.clock = new THREE.Clock();
+
+                //Fonts
+                let fontLoader = new THREE.FontLoader();
+                fontLoader.load("font.json", font => {
+                    let textGeo = new THREE.TextGeometry("Albert\ni\nAleix", {
+                        font: font,
+                        size: 1,
+                        height: 2/10,
+                        curveSegments: 1,
+                    });
+                    let textMat = new THREE.MeshNormalMaterial();
+                    let textMesh = new THREE.Mesh(textGeo,textMat);
+                    this.scene.add(textMesh)
+                    textMesh.position.set(-2,-3,-5);
+                
+                })
+                // Lights
+
+                const rectLight1 = new THREE.SpotLight( 0xff0000, 2.5);
+                rectLight1.position.set( - 5, 0, -5 );
+                this.scene.add( rectLight1 );
+
+                const rectLight2 = new THREE.SpotLight( 0x00ff00, 2.5);
+                rectLight2.position.set( 0, 0, 5 );
+                this.scene.add( rectLight2 );
+
+                const rectLight3 = new THREE.SpotLight( 0x0000ff, 2.5);
+                rectLight3.position.set( 5, 0, -5 );
+                this.scene.add( rectLight3 );
+
+                const ambient = new THREE.AmbientLight(0xFFFFFF);
+                this.scene.add(ambient);
+
+                // GLTF
+                var mesh = [];
+                this.GLTFloader = new GLTFLoader(this.LoadingManager);
+                this.GLTFloader.setPath( 'models/DamagedHelmet/glTF/' ).load( 'DamagedHelmet.gltf', gltf => {
+                    this.scene.add( gltf.scene );
+                    gltf.scene.traverse( (node) => {
+                        if (node.isMesh) 
+                            this.mesh.push(node)
+                            node.name = "helmet"
+                    });
+
+                } );
+
+                /*
+                 * Camera
+                 */
+                // Base camera
+                this.camera = new THREE.PerspectiveCamera(75, this.sizes.width / this.sizes.height, 0.1, 100)
+                this.camera.position.x = 0
+                this.camera.position.y = 0
+                this.camera.position.z = 2
+                this.camera.position.set(0, 0, 6);
+                this.scene.add(this.camera)
+
+                // Controls
+                this.controls = new OrbitControls(this.camera, this.canvas)
+                this.controls.minDistance = 2;
+                this.controls.maxDistance = 8;
+                this.controls.target.set( 0, 0, - 0.2 );
+
+                window.addEventListener("resize",_=>{
+                    this.sizes.width = this.canvas.parentNode.clientWidth
+                    this.sizes.height = this.canvas.parentNode.clientHeight
+    
+                    // Update camera
+                    this.camera.aspect = this.sizes.width / this.sizes.height
+                    this.camera.updateProjectionMatrix()
+    
+                    // Update renderer
+                    this.renderer.setSize(this.sizes.width, this.sizes.height)
+                    this.composer.setSize( this.sizes.width, this.sizes.height );
+                    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+                });
+
+                let whoami = this;
+                // Animation
+                this.LoadingManager.onLoad = function () {
+                    gsap.to(whoami.helmet, {scale: 7, duration: 2.5, ease: "easeout", onUpdate () {
+                        whoami.mesh[0].scale.set(whoami.helmet.scale,whoami.helmet.scale,whoami.helmet.scale)
+                    }, onComplete () {
+                        gsap.to(whoami.helmet, {scale: 0, duration: .5, ease: "ease", onUpdate () {
+                            whoami.mesh[0].scale.set(whoami.helmet.scale,whoami.helmet.scale,whoami.helmet.scale)
+                        }, onComplete () {
+                            
+                            whoami.scene.remove(whoami.scene.getObjectByName("helmet"))
+                            whoami.patoLoader = new GLTFLoader()
+                            whoami.patoLoader.load('models/patoAlbert2.gltf', gltf => {
+                                gltf.scene.position.set(0, -2.5, 0)
+                                gltf.scene.rotateY(deg2rad(-90));
+                                whoami.mixer = new THREE.AnimationMixer( gltf.scene);
+                                whoami.action = whoami.mixer.clipAction(gltf.animations[0]);
+                                whoami.mesh.push(gltf.scene);
+                                whoami.scene.add( gltf.scene );
+                                gsap.to(whoami.pato, {scale: .75, duration: .5, ease: "easein", onUpdate () {
+                                    gltf.scene.scale.set(whoami.pato.scale,whoami.pato.scale,whoami.pato.scale);
+                                }, onComplete() {
+                                    whoami.action.play();
+                                }})
+                                
+                            })
+                        }})
+                    }})
+                }
+                this.renderer = new THREE.WebGLRenderer({canvas: this.canvas, antialias: true});
+                this.renderer.setSize(this.sizes.width, this.sizes.height)
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+                this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                this.renderer.toneMappingExposure = 1;
+
+                this.target = new THREE.WebGLRenderTarget( {
+                    minFilter: THREE.LinearFilter,
+                    magFilter: THREE.LinearFilter,
+                    format: THREE.RGBAFormat,
+                    encoding: THREE.sRGBEncoding
+                } );
+
+                this.composer = new EffectComposer( this.renderer, this.target );
+                this.composer.setPixelRatio( window.devicePixelRatio );
+                this.composer.setSize( this.sizes.width, this.sizes.height );
+                this.composer.addPass( new RenderPass( this.scene, this.camera ) );
+                this.lutPass = new LUTPass();
+                this.composer.addPass( this.lutPass );
+                this.afterimagePass = new AfterimagePass();
+                this.composer.addPass( this.afterimagePass );
+                this.composer.addPass( new ShaderPass(BleachBypassShader));
+
+                this.delta = undefined;
+                this.clock2 = new THREE.Clock();
+
+                
+                
+            }
+            animate() {
+                window.requestAnimationFrame((t) => {
+                    this.delta = this.clock.getDelta();
+                    this.lutPass.enabled = Boolean(this.LUT.enabled && this.lutMap != undefined);
+                    this.lutPass.intensity = 1;
+                    if (this.lutMap) this.lutPass.lut = this.lutMap.texture3D;
+                    if(this.afterimagePass.uniforms[ 'damp' ].value > 0) this.afterimagePass.uniforms[ 'damp' ].value -= 0.001;
+                    if (this.mesh[1]) this.mesh[1].rotation.y = this.clock2.getElapsedTime();
+                    if ( this.mixer !== undefined ) {
+                        this.mixer.update( this.delta );
+                
+                    }
+                    // Update objects
+                
+                    // Render
+                    this.composer.render()
+                
+                    // Call tick again on the next frame
+                    window.requestAnimationFrame(_=>{
+                        this.animate(this)
+                    })
+                })
+            }
+            clear() {
+                let parent = this.canvas.parentNode;
+                this.canvas.remove();
+                let recreate = new Promise ((resolve, reject) => {
+                    let canvas = document.createElement("canvas");
+                    canvas.className = "webgl";
+                    parent.appendChild(canvas);
+                    this.canvas = canvas;
+                    if (document.querySelector("canvas")) resolve();
+                });
+                recreate.then(_=>{
+                    this.main.canvas = document.querySelector("canvas");
+                    return true
+                })
+                this.main.LoadingManager = new THREE.LoadingManager();
+                delete this.main.default;
+            }
+        }
+        this.Scene1 = class {
+            constructor(main, skybox, autoRotate = true){
+
+                //Essentials
+                this.sizes = main.sizes;
+                this.main = main;
+                this.canvas = main.canvas;
+                this.textureLoader = main.textureLoader;
+                this.LoadingManager = main.LoadingManager;
+
+                this.autoRotate = autoRotate;
+                this.skyboxImagepaths = typeof(skybox) == Array ? skybox : ["images/menu/front.png", "images/menu/back.png", "images/menu/up.png", "images/menu/down.png", "images/menu/right.png", "images/menu/left.png",];
+                this.noise = new SimplexNoise();
+
+                this.init();
+            }
+            init() {
+                // Scene
+                this.scene = new THREE.Scene()
+                let whoami = this;
+
+                //Camera
+                this.camera = new THREE.PerspectiveCamera(
+                    55,
+                    this.sizes.width/this.sizes.height,
+                    45,
+                    30000
+                );
+                this.camera.position.set(5493, 3556, -4089);
+                this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true});
+                this.renderer.setSize(game.clientWidth, game.clientHeight);
+                this.renderer.setClearColor(0x574b90, 1);
+                this.renderer.autoClear = false;
+                this.renderer.outputEncoding = true;
+
+                const materialArray = createMaterialArray(this.skyboxImagepaths);
+
+                this.skyboxGeo = new THREE.BoxGeometry(10000*2, 10000*2, 10000*2);
+                this.skybox = new THREE.Mesh(this.skyboxGeo, materialArray);
+              
+                var spriteMap = new THREE.TextureLoader().load( "images/menu/schedablocks.png" );
+                var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
+                this.menuText = new THREE.Sprite( spriteMaterial );
+                this.menuText.position.set(0,2500,0);
+                this.menuText.scale.set(4000, 4000, 4000);
+                this.scene.add( this.menuText );
+                this.menuText.name = "menuText";
+
+                // Lights
+
+                const upColor = 0xFFFF80;
+                const downColor = 0x4040FF;
+              
+                var light = new THREE.HemisphereLight(upColor, downColor, 1);
+                var light2 = new THREE.DirectionalLight(0xFFFFFF, 1);
+                light2.position.set(100, -500, 100);
+                var light3 = new THREE.DirectionalLight(0x574b90, 1);
+                light3.position.set(100, 500, 100);
+                var ambient = new THREE.AmbientLight("#85b2cd", 1);
+                this.scene.add(light3);
+                this.scene.add(light2);
+                this.scene.add(light);
+                this.scene.add(ambient);
+
+                //GLTF
+                // 3D
+                var loader = new GLTFLoader();
+
+                // Load a glTF resource
+                loader.load(
+                    'models/gun/scene.gltf',
+                    // called when the resource is loaded
+                    gltf => {
+                            this.mesh = gltf.scene;
+                            this.mesh.scale.set( 4, 4, 4 );
+                            this.mesh.rotation.set(deg2rad(-60), deg2rad(90), deg2rad(25));
+
+                            if (this.mesh){
+                            animate();
+                            }
+                            this.scene.add( this.mesh );
+
+                    }
+                );
+                
+                this.particles = new Particles(this.scene, 150, 30, 5);
+                this.particles.init();
+                initAudioButton(this.canvas.parentNode);
+                var ballTiles = {
+                    baseColor: this.textureLoader.load('images/menu/ball/Metal_scratched_009_basecolor.jpg'),
+                    normalMap: this.textureLoader.load('images/menu/ball/Metal_scratched_009_normal.jpg'),
+                    heightMap: this.textureLoader.load('images/menu/ball/Metal_scratched_009_height.png'),
+                    roughnessMap: this.textureLoader.load('images/menu/ball/Metal_scratched_009_roughness.jpg'),
+                    aoMap: this.textureLoader.load('images/menu/ball/Metal_scratched_009_ambientOcclusion.jpg'),
+
+                }
+                var planeGeometry = new THREE.PlaneGeometry(800, 800, 20, 20);
+                var planeMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x000000,
+                    displacementMap: ballTiles.heightMap,
+                    displacementScale: 1,
+                    roughnessMap: ballTiles.roughnessMap,
+                    roughness: 1,
+                    aoMap: ballTiles.aoMap,
+                    side: THREE.DoubleSide
+                });
+
+                var icosahedronGeometry = new THREE.IcosahedronGeometry(10, 4);
+                var lambertMaterial = new THREE.MeshStandardMaterial({
+                    aoMap: ballTiles.aoMap,
+                    normalMap: ballTiles.normalMap,
+                    displacementMap: ballTiles.heightMap,
+                    displacementScale: 1,
+                    roughnessMap: ballTiles.roughnessMap,
+                    roughness: 1,
+                });
+
+                this.plane = new THREE.Mesh(planeGeometry, planeMaterial);
+                this.plane.rotation.x = -0.5 * Math.PI;
+                this.plane.position.set(0, -1250, 0);
+                this.plane.scale.set(13,13, 13);
+                this.plane.name = "plane";
+                this.scene.add(this.plane);
+
+                this.ball = new THREE.Mesh(icosahedronGeometry, lambertMaterial);
+                this.ball.position.set(3000,-150, 0);
+                this.ball.scale.set(20,20,20);
+                this.ball.name = "ball";
+                this.scene.add(this.ball);
+
+                if (!analyser) {
+                    var context = new AudioContext();
+                    var src = context.createMediaElementSource(audio);
+                    analyser = context.createAnalyser();
+                    src.connect(analyser);
+                    analyser.connect(context.destination);
+                    analyser.fftSize = 512;
+                    var bufferLength = analyser.frequencyBinCount;
+                    this.dataArray = new Uint8Array(bufferLength);
+                }
+
+                this.skybox.name = "skybox";
+                this.scene.add(this.skybox);
+
+                this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+                this.controls.enabled = true;
+                this.controls.autoRotate = true;
+                this.controls.autoRotateSpeed = 1.0;
+                this.controls.minDistance = 700;
+                this.controls.maxDistance = 7000;
+
+                this.stats = new Stats();
+                this.stats.showPanel(0);
+                this.stats.dom.id = "stats"
+                document.body.appendChild( this.stats.dom );
+
+                // Limit FPS
+                this.clock = new THREE.Clock();
+                this.delta = 0;
+                // 60 fps
+                this.interval = 1 / 60;
+
+                var startspriteMap = new THREE.TextureLoader().load( "images/menu/start.png" );
+                var startspriteMaterial = new THREE.SpriteMaterial( { map: startspriteMap} );
+                startspriteMaterial.depthWrite = false;
+                startspriteMaterial.depthTest  = false;
+                this.start = new THREE.Sprite( startspriteMaterial );
+                this.start.position.set(0,-2000,0);
+                this.start.scale.set(1890*3,250*3,1);
+                this.scene.add( this.start );
+                this.start.name = "start";
+
+
+
+                window.addEventListener("resize",_=>{
+                    this.sizes.width = this.canvas.parentNode.clientWidth
+                    this.sizes.height = this.canvas.parentNode.clientHeight
+    
+                    // Update camera
+                    this.camera.aspect = this.sizes.width / this.sizes.height
+                    this.camera.updateProjectionMatrix()
+    
+                    // Update renderer
+                    this.renderer.setSize(this.sizes.width, this.sizes.height)
+                    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+                });
+            }
+            animate() {
+                window.requestAnimationFrame((t) => {
+                    this.controls.autoRotate = this.autoRotate;
+                    this.controls.update();
+                  
+                    this.stats.begin();
+                  
+                  
+                    analyser.getByteFrequencyData(this.dataArray);
+                  
+                    var lowerHalfArray = this.dataArray.slice(0, (this.dataArray.length/2) - 1);
+                    var upperHalfArray = this.dataArray.slice((this.dataArray.length/2) - 1, this.dataArray.length - 1);
+                    var lowerMax = max(lowerHalfArray);
+                    var upperAvg = avg(upperHalfArray);
+                  
+                  
+                    var lowerMaxFr = lowerMax / lowerHalfArray.length;
+                    var upperAvgFr = upperAvg / upperHalfArray.length;
+                  
+                    makeRoughGround(this.plane, modulate(upperAvgFr, 0, 1, 0.5, 4));
+                    makeRoughBall(this.ball, modulate(Math.pow(lowerMaxFr, 0.8), 0, 1, 0, 8), modulate(upperAvgFr, 0, 1, 0, 4));
+                    this.particles.animate()
+                  
+                  
+                    this.delta += this.clock.getDelta();
+                    if (this.delta > this.interval) {
+                      this.renderer.render(this.scene, this.camera);
+                  
+                      this.delta = this.delta % this.interval;
+                      this.stats.end();
+                    }
+                })
+            }
+            clear() {
+                let parent = this.canvas.parentNode;
+                this.canvas.remove();
+                let recreate = new Promise ((resolve, reject) => {
+                    let canvas = document.createElement("canvas");
+                    canvas.className = "webgl";
+                    parent.appendChild(canvas);
+                    this.canvas = canvas;
+                    if (document.querySelector("canvas")) resolve();
+                });
+                recreate.then(_=>{
+                    this.main.canvas = document.querySelector("canvas");
+                    return true
+                })
+                delete this.main.default;
+            }
+        }
+        this.Scene2 = class {
+            constructor(main){
+                this.sizes = main.sizes;
+                this.main = main;
+                this.canvas = main.canvas;
+                this.textureLoader = main.textureLoader;
+                this.LoadingManager = main.LoadingManager;
+
+                this.mesh = [];
+                //Efectes especials
+                let efectes = ["lutPass", "lutMap", "afterimagePass"];
+
+                let playback = ["mixer", "action"];
+
+                this.LUT = {
+                    enabled: true
+                }
+                this.mode = THREE.EquirectangularReflectionMapping;
+                this.composer = undefined;
+                [...efectes,...playback].forEach(property => {
+                    this[property] = undefined;
+                });
+
+                this.helmet = {
+                    scale: 0
+                }
+                this.pato = {
+                    scale: 0
+                }
+
+                this.init();
+            }
+            init() {
                 let lut = new LUTCubeLoader().load( 'Bourbon 64.CUBE', (result, lutMap) => {
                     this.lutMap = result;
                 });
@@ -311,7 +785,7 @@ class Schedablocks {
                 delete this.main.default;
             }
         }
-        this.scenes = [this.Scene0];
+        this.scenes = [this.Scene0, this.Scene1, this.Scene2];
         this.init();
     }
     init() {
@@ -352,6 +826,7 @@ class Schedablocks {
 }
 //Initialize first scene
 var schedablocks;
+const audio = new Audio();
 document.addEventListener("DOMContentLoaded", _=>{
     schedablocks = new Schedablocks(document.querySelector("canvas.webgl"), window.innerWidth-16,window.innerHeight);
     console.log("This is my super object:");
@@ -371,10 +846,149 @@ document.addEventListener("DOMContentLoaded", _=>{
             if (document.querySelector("canvas.webgl")) resolve();
         });
         recreate.then(_=>{
-            schedablocks.init()
+            schedablocks.start(2)
         })
     })
     children[2].addEventListener("click",_=>{
         location.replace("https://youtu.be/dQw4w9WgXcQ");
     })
 })
+
+
+function initAudioButton(game) {
+target = document.createElement("div");
+target.className = "sound blend";
+game.appendChild(target);
+if (audio.src.length == 0) {
+  audio.src = songs[Math.floor(Math.random() * songs.length)];
+  audio.load();
+  audio.onended = () => {
+    audio.src = songs[Math.floor(Math.random() * songs.length)];
+    audio.play()
+  }
+  initAudio();
+}else if (!audio.paused){
+  target.textContent = "SOUND";
+}else{
+  target.textContent = "MUTED";
+  target.style.color = "#fab1a0";
+}
+target.addEventListener("click", toggleAudio, false);
+}
+
+function toggleAudio(){
+
+if(!audio.paused && !audio.ended ) {
+  let interval = setInterval(() => {
+    audio.pause();
+    if(audio.paused){
+      clearInterval(interval);
+      target.textContent = "MUTED";
+      target.style.color = "#fab1a0";
+      localStorage.setItem("music", 0);
+      return true;
+    }
+  }, 100);
+
+}
+else if (audio.paused) {
+    audio.play();
+    target.textContent = "SOUND";
+    target.style = "";
+    localStorage.setItem("music", 1);
+    return true;
+}
+}
+function initAudio() {
+if(localStorage.getItem("music") == '0') {
+  target.textContent = "MUTED";
+  target.style.color = "#fab1a0";
+}else if(localStorage.getItem("music") == '1' || localStorage.getItem("music") == null) {
+  audio.play();
+  target.textContent = "SOUND";
+  target.style = "";
+}
+}
+
+class Particles {
+    constructor(scene,howMany, scale = 30, offset = 5) {
+    this.scene = scene;
+    this.howMany = howMany;
+    this.particle = new THREE.Object3D();
+    this.particle.name = "particle";
+    this.scale = scale;
+    this.offset = offset;
+    }
+    init() {
+        this.scene.add(this.particle);
+        var material = new THREE.MeshNormalMaterial();
+        var geometry = new THREE.TetrahedronGeometry(2, 0);
+        for (var i = 0; i < this.howMany; i++) {
+        var mesh = new THREE.Mesh(geometry, material);
+        mesh.scale.set(this.scale,this.scale,this.scale);
+        mesh.position.set(Math.random()*this.offset - 0.5*this.offset, Math.random()*this.offset - 0.5*this.offset, Math.random()*this.offset - 0.5*this.offset).normalize();
+        mesh.position.multiplyScalar(90*this.offset + (Math.random() * 700)*this.offset);
+        mesh.rotation.set(Math.random() * 2, Math.random() * 2, Math.random() * 2);
+        this.particle.add(mesh);
+        }
+    }
+    animate() {
+    this.particle.rotation.y +=.004;
+    }
+}
+
+//some helper functions here
+function fractionate(val, minVal, maxVal) {
+    return (val - minVal)/(maxVal - minVal);
+}
+
+function modulate(val, minVal, maxVal, outMin, outMax) {
+    var fr = fractionate(val, minVal, maxVal);
+    var delta = outMax - outMin;
+    return outMin + (fr * delta);
+}
+
+function avg(arr){
+    var total = arr.reduce(function(sum, b) { return sum + b; });
+    return (total / arr.length);
+}
+
+function max(arr){
+    return arr.reduce(function(a, b){ return Math.max(a, b); })
+}
+function loadFile(filename) {
+return new Promise((resolve, reject) => {
+  const loader = new THREE.FileLoader();
+
+  loader.load(filename, (data) => {
+    resolve(data);
+  });
+});
+};
+function makeRoughGround(mesh, distortionFr) {
+  mesh.geometry.vertices.forEach(function (vertex, i) {
+      var amp = 30;
+      var time = Date.now();
+      var distance = (noise.noise2D(vertex.x + time * 0.0003, vertex.y + time * 0.0001) + 0) * distortionFr * amp;
+      vertex.z = distance;
+  });
+  mesh.geometry.verticesNeedUpdate = true;
+  mesh.geometry.normalsNeedUpdate = true;
+  mesh.geometry.computeVertexNormals();
+  mesh.geometry.computeFaceNormals();
+}
+function makeRoughBall(mesh, bassFr, treFr) {
+  mesh.geometry.vertices.forEach(function (vertex, i) {
+      var offset = mesh.geometry.parameters.radius;
+      var amp = 7;
+      var time = window.performance.now();
+      vertex.normalize();
+      var rf = 0.00001;
+      var distance = (offset + bassFr ) + noise.noise3D(vertex.x + time *rf*7, vertex.y +  time*rf*8, vertex.z + time*rf*9) * amp * treFr;
+      vertex.multiplyScalar(distance);
+  });
+  mesh.geometry.verticesNeedUpdate = true;
+  mesh.geometry.normalsNeedUpdate = true;
+  mesh.geometry.computeVertexNormals();
+  mesh.geometry.computeFaceNormals();
+}

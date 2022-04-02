@@ -95,7 +95,7 @@ function init() {
   renderer.setSize(game.clientWidth, game.clientHeight);
   renderer.setClearColor(0x574b90, 1);
   renderer.autoClear = false;
-  renderer.gammaOutput = true; 
+  renderer.outputEncoding = true; 
   if (document.querySelector("canvas")){
     document.querySelector("canvas").remove()
   }
