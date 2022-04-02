@@ -1,0 +1,95 @@
+@import-normalize;
+@tailwind base;
+@tailwind components;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html{
+  --color-fantastic-purple: #624fc2;
+  --color-purple: #574b90;
+  --color-fantastic-blue: #3660ad;
+  --color-not-quite-dark: #23272a;
+  --color-dark: rgb(39, 39, 39);
+  --color-white: #fff;
+  --color-black: #000;
+  --color-fantastic-cyan: #0077ae;
+  --color-lighter-dark: #45494e;
+}
+@layer components {
+  .sidebar-icon {
+    @apply relative flex items-center justify-center 
+    h-12 w-12 mt-2 mb-2 mx-auto  
+  bg-gray-400 hover:bg-purple-600 dark:bg-gray-800 
+  text-purple-500 hover:text-white
+    hover:rounded-xl rounded-3xl
+    transition-all duration-300 ease-linear
+    cursor-pointer shadow-lg;
+  }
+  .sidebar-icon:last-of-type{
+    @apply absolute bottom-0 left-[50%] hover:bg-pink-800 text-pink-500 hover:text-white;
+    transform: translateX(-50%);
+  }
+  .sidebar-tooltip {
+    @apply absolute w-auto p-2 m-2 min-w-max left-14 rounded-md shadow-md
+    text-white bg-gray-900 
+    text-xs font-bold 
+    transition-all duration-100 scale-0 origin-left;
+  }
+
+  .sidebar-hr {
+    @apply bg-gray-200 dark:bg-gray-800 
+    border border-gray-200 dark:border-gray-800 rounded-full
+    mx-2;
+  }
+  .content-container{
+    @apply w-full h-screen absolute;
+    left: 16px;
+    width: calc(100% - 16px);
+    transition: all .145s cubic-bezier(.17,.67,.14,.18);
+  }
+  #sidebar{
+    z-index: 99999999999999999999999999999999999999999999999;
+    transform: translateX(-48px);
+    transition: all .145s cubic-bezier(.17,.67,.14,.18);
+  }
+  #sidebar:before,
+  #sidebar:after {
+    width: 20px;
+    height: 35px;
+    position: absolute;
+    left: 100%;
+    content: "";
+    cursor: pointer;
+    filter: drop-shadow(0 0 0.75rem var(--color-fantastic-purple));;
+  }
+  #sidebar:before{
+    top: 50%;
+    transform: translateY(-50%);
+    background: linear-gradient(to right top, #888 50%, transparent 50%)
+  }
+  #sidebar:after {
+    top: calc(50% + 35px);
+    transform: translateY(-50%);
+    background: linear-gradient(to right bottom, #888 50%, transparent 50%)
+  }
+  #sidebar:hover{
+    transform: translateX(0);
+  }
+}
+
+@tailwind utilities;
+
+::-webkit-scrollbar {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-500;
+}
+.flex{
+  justify-content: center;
+}

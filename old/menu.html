@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="Web site created using create-react-app">
+    <title>Schedablocks by Albert i Aleix, without React</title>
+    <style>
+#loading-screen {
+	position: absolute;
+	z-index: 2;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: #000000;
+	opacity: 1;
+ 	transition: 1s opacity;
+}
+
+#loading-screen.fade-out {
+    opacity: 0;
+}
+
+#loader {
+    display: block;
+    position: relative;
+    left: 50%;
+    top: 50%;
+    width: 150px;
+    height: 150px;
+    margin: -75px 0 0 -75px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #9370DB;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+}
+#loader:before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #BA55D3;
+    -webkit-animation: spin 3s linear infinite;
+    animation: spin 3s linear infinite;
+}
+#loader:after {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #FF00FF;
+    -webkit-animation: spin 1.5s linear infinite;
+    animation: spin 1.5s linear infinite;
+}
+@-webkit-keyframes spin {
+    0%   {
+        -webkit-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+@keyframes spin {
+    0%   {
+        -webkit-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+    </style>
+    <style>
+        #game{
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+        }
+        body{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        #game .sound{
+        text-align: right;
+        right: 0;
+        position: fixed;
+        font-family: sans-serif;
+        top: 50px;
+        cursor: pointer;
+        z-index: 99999999999999999999;
+        width: 100px;
+        font-size: 1.5rem;
+        mix-blend-mode: screen;
+        animation: shadow 2s ease-in infinite;
+        cursor: pointer;
+        }
+        #stats{
+        left: calc(100% - 80px)!important;
+        }
+        .blend{
+        color: aliceblue;
+        opacity: 0.6;
+        mix-blend-mode: color-dodge;
+        text-shadow: 0 0 10px #fff;
+        }
+    </style>
+</head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="game" class="content-container noselect"></div>
+   <script src="JS/gsap.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/87/three.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/three@0.87.1/examples/js/controls/OrbitControls.js"></script>
+   <script src="https://unpkg.com/three@0.87.1/examples/js/loaders/GLTFLoader.js"></script>
+   <script src="https://unpkg.com/@seregpie/three.text-texture"></script>
+   <script src="https://unpkg.com/@seregpie/three.text-sprite"></script>
+   <script src="JS/stats.min.js"></script>
+   <script src='https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.3.0/simplex-noise.min.js'></script>
+   <script src="JS/menu.js"></script>
+</body>
+</html>

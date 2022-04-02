@@ -379,6 +379,12 @@ document.addEventListener("DOMContentLoaded", _=>{
         recreate.then(_=>{
             schedablocks.start(1)
         }) */
+        if (document.querySelector("canvas.webgl")) document.querySelector("canvas.webgl").remove();
+        if (document.querySelector("iframe")) document.querySelector("iframe").remove();
+        
+        let iframe = document.createElement("iframe");
+        iframe.src = "old/menu.html";
+        game.appendChild(iframe);
     })
     children[1].addEventListener("click",_=>{
         /* let recreate = new Promise((resolve,reject) =>{
@@ -388,15 +394,31 @@ document.addEventListener("DOMContentLoaded", _=>{
         recreate.then(_=>{
             schedablocks.start(2)
         }) */
+        if (document.querySelector("canvas.webgl")) document.querySelector("canvas.webgl").remove();
+        if (document.querySelector("iframe")) document.querySelector("iframe").remove();
+
+        let iframe = document.createElement("iframe");
+        iframe.src = "old/game.html";
+        game.appendChild(iframe);
     })
     children[2].addEventListener("click",_=>{
-        let recreate = new Promise((resolve,reject) =>{
-            let promise = schedablocks.default.clear()
-            if (document.querySelector("canvas.webgl")) resolve();
-        });
-        recreate.then(_=>{
-            schedablocks.init()
-        })
+        if (!document.querySelector("canvas.webgl")) {
+            if (document.querySelector("iframe")) document.querySelector("iframe").remove();
+            let canvas = document.createElement("canvas");
+            canvas.className = "webgl";
+            game.appendChild(canvas);
+            schedablocks = new Schedablocks(canvas);
+        }else{
+            let recreate = new Promise((resolve,reject) =>{
+                let promise = schedablocks.default.clear()
+                if (document.querySelector("canvas.webgl")) resolve();
+            });
+            recreate.then(_=>{
+                schedablocks.init()
+            })
+        }
+        
+        
     })
 })
 
