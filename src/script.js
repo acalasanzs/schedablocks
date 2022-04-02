@@ -10,11 +10,10 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { LUTPass } from 'three/examples/jsm/postprocessing/LUTPass.js';
 import { LUTCubeLoader } from 'three/examples/jsm/loaders/LUTCubeLoader.js';
 import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js';
-
+const loadingScreen = document.getElementById("loading-screen");
 //import * as dat from 'dat.gui'
 let children = document.getElementsByClassName("sidebar-icon");
-[...children].forEach((reference, i = 0) =>{
-reference.i = i;
+[...children].forEach((reference) =>{
 reference.addEventListener("click",(e)=>{
     e.preventDefault()
     var duration = .1;
@@ -27,14 +26,17 @@ reference.addEventListener("click",(e)=>{
     tl.to(reference, duration/4, {scale: 1.2, ease: "easein"})
     tl.to(reference, duration/2, {scale: 1, ease: "easeout", delay: duration})
 });
-i++;
 });
-
 
 const deg2rad = function (degrees)
 {
   var pi = Math.PI;
   return degrees * (pi/180);
+}
+function onTransitionEnd( event ) {
+
+	event.target.remove();
+	
 }
 class Schedablocks {
     constructor(game, w, h) {
@@ -48,6 +50,17 @@ class Schedablocks {
         }
         //Prevenir la carrega
         this.LoadingManager = new THREE.LoadingManager();
+        this.loaded = false;
+        this.LoadingManager.onProgress = ( url, itemsLoaded, itemsTotal ) => {
+            if(itemsLoaded == itemsTotal && !this.loaded) {
+                this.loaded = true;
+                console.log("Loaded");
+                loadingScreen.classList.add( 'fade-out' );
+                // optional: remove loader from DOM via event listener
+                loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
+            }
+        };
+        console.log(this.LoadingManager);
         this.textureLoader = new THREE.TextureLoader(this.LoadingManager);
         // TEXTURES
         this.textures = { 
@@ -289,8 +302,8 @@ class Schedablocks {
         this.init();
     }
     init() {
-        this.firstScene = new this.Scene0(this);
-        this.firstScene.animate();
+        this.default = new this.Scene0(this);
+        this.default.animate();
     }
     fireParticleShader1 () {
         return {
@@ -322,5 +335,16 @@ class Schedablocks {
 }
 
 //Initialize first scene
+document.addEventListener("DOMContentLoaded", _=>{
+    const schedablocks = new Schedablocks(document.querySelector("canvas.webgl"), window.innerWidth-16,window.innerHeight);
 
-const schedablocks = new Schedablocks(document.querySelector("canvas.webgl"));
+    children[0].addEventListener("click",_=>{
+        schedablocks.default.clear();
+    })
+    children[1].addEventListener("click",_=>{
+    
+    })
+    children[2].addEventListener("click",_=>{
+        location.replace("https://youtu.be/dQw4w9WgXcQ");
+    })
+})
