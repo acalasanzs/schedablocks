@@ -311,10 +311,15 @@ class Schedablocks {
                 delete this.main.default;
             }
         }
+        this.scenes = [this.Scene0];
         this.init();
     }
     init() {
         this.default = new this.Scene0(this);
+        this.default.animate();
+    }
+    start(scene) {
+        this.default = new this.scenes[scene](this);
         this.default.animate();
     }
     fireParticleShader1 () {
@@ -345,7 +350,6 @@ class Schedablocks {
         }
     }
 }
-
 //Initialize first scene
 var schedablocks;
 document.addEventListener("DOMContentLoaded", _=>{
@@ -358,7 +362,7 @@ document.addEventListener("DOMContentLoaded", _=>{
             if (document.querySelector("canvas.webgl")) resolve();
         });
         recreate.then(_=>{
-            schedablocks.init()
+            schedablocks.start(1)
         })
     })
     children[1].addEventListener("click",_=>{
