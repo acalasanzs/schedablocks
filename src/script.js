@@ -120,7 +120,8 @@ class Schedablocks {
             }
         }
         
-        this.Scene0 = class {
+        this.scenes = { 
+            0: class {
             constructor(main){
                 this.name = "Scene0";
                 this.sizes = main.sizes;
@@ -328,33 +329,29 @@ class Schedablocks {
                     })
                 })
             }
-            clear () {
-                return new Promise((resolve, reject) => {
-                    var id;
-                    let parent = this.main.canvas.parentNode;
-                    this.main.canvas.remove();
-                    let recreate = new Promise ((resolve, reject) => {
-                        let canvas = document.createElement("canvas");
-                        parent.appendChild(canvas);
-                        id = this.main.id();
-                        canvas.id = id;
-                        this.main.canvas = canvas;
-                        if (document.getElementById(id)) resolve();
-                    });
-                    recreate.then(_=>{
-                        this.main.canvas = document.querySelector("canvas");
-                        resolve()
-                    })
-                    this.main.LoadingManager = new THREE.LoadingManager();
-                    delete this.main.default;
-                })
+            async clear () {
+                var id;
+                let parent = this.main.canvas.parentNode;
+                this.main.canvas.remove();
+                let recreate = new Promise ((resolve, reject) => {
+                    let canvas = document.createElement("canvas");
+                    parent.appendChild(canvas);
+                    id = this.main.id();
+                    canvas.id = id;
+                    this.main.canvas = canvas;
+                    if (document.getElementById(id)) resolve();
+                });
+                this.main.LoadingManager = new THREE.LoadingManager();
+                delete this.main.default;
+                const _ = await recreate;
+                this.main.canvas = document.querySelector("canvas");
             }
         }
-        this.scenes = [this.Scene0];
+        }
         this.init();
     }
     init() {
-        this.default = new this.Scene0(this);
+        this.default = new this.scenes[0](this);
         this.default.animate();
     }
     start(scene) {
@@ -373,30 +370,16 @@ document.addEventListener("DOMContentLoaded", _=>{
     console.log("This is my super object:");
     console.log(schedablocks);
     children[0].addEventListener("click",_=>{
-        /* let recreate = new Promise((resolve,reject) =>{
-            let promise = schedablocks.default.clear()
-            if (promise) resolve();
-        });
+        let recreate = schedablocks.default.clear()
         recreate.then(_=>{
             schedablocks.start(1)
-        }) */
-        
-        let iframe = document.createElement("iframe");
-        iframe.src = "old/menu.html";
-        game.appendChild(iframe);
+        })
     })
     children[1].addEventListener("click",_=>{
-        /* let recreate = new Promise((resolve,reject) =>{
-            let promise = schedablocks.default.clear()
-            if (promise) resolve();
-        });
+        let recreate = schedablocks.default.clear()
         recreate.then(_=>{
-            schedablocks.start(1)
-        }) */
-
-        let iframe = document.createElement("iframe");
-        iframe.src = "old/game.html";
-        game.appendChild(iframe);
+            schedablocks.start(2)
+        })
     })
     children[2].addEventListener("click",_=>{
 
