@@ -12,7 +12,6 @@ import { LUTCubeLoader } from 'three/examples/jsm/loaders/LUTCubeLoader.js';
 import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 import SimplexNoise from 'simplex-noise';
 import * as Stats from 'stats-js';
-const loadingScreen = document.getElementById("loading-screen");
 const songs = ["music/head.mp3","music/through.mp3","music/weekend.mp3","music/nandemonaiya.mp3","music/faking.mp3","music/older.mp3","music/notsobad.mp3","music/monogatari.mp3","music/bakamitai.mp3","music/levels.mp3","music/toby.mp3","music/crush.mp3","music/flutter.mp3","music/funny.mp3","music/Luke Chiang - May I Ask (feat. Alexis Kim).mp3","music/Modern Talking - Brother Louie.mp3","music/Ruel - Painkiller.mp3"];
 
 //import * as dat from 'dat.gui'
@@ -54,15 +53,17 @@ class Schedablocks {
             height: h ? h : this.canvas.parentNode.clientHeight
         }
         //Prevenir la carrega
+        this.loader();
         this.LoadingManager = new THREE.LoadingManager();
         this.loaded = false;
         this.LoadingManager.onProgress = ( url, itemsLoaded, itemsTotal ) => {
             if(itemsLoaded == itemsTotal && !this.loaded) {
                 this.loaded = true;
                 console.log("Loaded");
-                loadingScreen.classList.add( 'fade-out' );
+                this.loadingScreen.classList.add( 'fade-out' );
                 // optional: remove loader from DOM via event listener
-                loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
+                this.loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
+                this.loadingScreen = null;
             }
         };
         this.textureLoader = new THREE.TextureLoader(this.LoadingManager);
@@ -345,6 +346,7 @@ class Schedablocks {
                 delete this.main.default;
                 const _ = await recreate;
                 this.main.canvas = document.querySelector("canvas");
+                this.main.loaded = false;
             }
         },
             1: class {
@@ -577,15 +579,25 @@ class Schedablocks {
         this.init();
     }
     init() {
+        if(!this.loadingScreen) this.loader();
         this.default = new this.scenes[0](this);
         this.default.animate();
     }
     start(scene) {
+        if(!this.loadingScreen) this.loader();
         this.default = new this.scenes[scene](this);
         this.default.animate();
     }
     id() {
         return this.default.name + Math.random().toString(36).substr(2, 9);
+    }
+    loader() {
+        this.loadingScreen = document.createElement("section");
+        this.loadingScreen.id = "loading-screen";
+        let node = document.createElement("div");
+        node.id = "loader";
+        this.loadingScreen.appendChild(node);
+        this.canvas.parentNode.appendChild(this.loadingScreen);
     }
 }
 //Initialize first scene
