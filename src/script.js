@@ -122,6 +122,7 @@ class Schedablocks {
         
         this.Scene0 = class {
             constructor(main){
+                this.name = "Scene0";
                 this.sizes = main.sizes;
                 this.main = main;
                 this.canvas = main.canvas;
@@ -149,6 +150,7 @@ class Schedablocks {
                 this.pato = {
                     scale: 0
                 }
+
 
                 this.init();
             }
@@ -326,22 +328,26 @@ class Schedablocks {
                     })
                 })
             }
-            clear() {
-                let parent = this.canvas.parentNode;
-                this.canvas.remove();
-                let recreate = new Promise ((resolve, reject) => {
-                    let canvas = document.createElement("canvas");
-                    canvas.className = "webgl";
-                    parent.appendChild(canvas);
-                    this.canvas = canvas;
-                    if (document.querySelector("canvas")) resolve();
-                });
-                recreate.then(_=>{
-                    this.main.canvas = document.querySelector("canvas");
-                    return true
+            clear () {
+                return new Promise((resolve, reject) => {
+                    var id;
+                    let parent = this.main.canvas.parentNode;
+                    this.main.canvas.remove();
+                    let recreate = new Promise ((resolve, reject) => {
+                        let canvas = document.createElement("canvas");
+                        parent.appendChild(canvas);
+                        id = this.main.id();
+                        canvas.id = id;
+                        this.main.canvas = canvas;
+                        if (document.getElementById(id)) resolve();
+                    });
+                    recreate.then(_=>{
+                        this.main.canvas = document.querySelector("canvas");
+                        resolve()
+                    })
+                    this.main.LoadingManager = new THREE.LoadingManager();
+                    delete this.main.default;
                 })
-                this.main.LoadingManager = new THREE.LoadingManager();
-                delete this.main.default;
             }
         }
         this.scenes = [this.Scene0];
@@ -355,6 +361,9 @@ class Schedablocks {
         this.default = new this.scenes[scene](this);
         this.default.animate();
     }
+    id() {
+        return this.default.name + Math.random().toString(36).substr(2, 9);
+    }
 }
 //Initialize first scene
 var schedablocks;
@@ -366,13 +375,11 @@ document.addEventListener("DOMContentLoaded", _=>{
     children[0].addEventListener("click",_=>{
         /* let recreate = new Promise((resolve,reject) =>{
             let promise = schedablocks.default.clear()
-            if (document.querySelector("canvas.webgl")) resolve();
+            if (promise) resolve();
         });
         recreate.then(_=>{
             schedablocks.start(1)
         }) */
-        if (document.querySelector("canvas.webgl")) document.querySelector("canvas.webgl").remove();
-        if (document.querySelector("iframe")) document.querySelector("iframe").remove();
         
         let iframe = document.createElement("iframe");
         iframe.src = "old/menu.html";
@@ -381,34 +388,22 @@ document.addEventListener("DOMContentLoaded", _=>{
     children[1].addEventListener("click",_=>{
         /* let recreate = new Promise((resolve,reject) =>{
             let promise = schedablocks.default.clear()
-            if (document.querySelector("canvas.webgl")) resolve();
+            if (promise) resolve();
         });
         recreate.then(_=>{
-            schedablocks.start(2)
+            schedablocks.start(1)
         }) */
-        if (document.querySelector("canvas.webgl")) document.querySelector("canvas.webgl").remove();
-        if (document.querySelector("iframe")) document.querySelector("iframe").remove();
 
         let iframe = document.createElement("iframe");
         iframe.src = "old/game.html";
         game.appendChild(iframe);
     })
     children[2].addEventListener("click",_=>{
-        if (!document.querySelector("canvas.webgl")) {
-            if (document.querySelector("iframe")) document.querySelector("iframe").remove();
-            let canvas = document.createElement("canvas");
-            canvas.className = "webgl";
-            game.appendChild(canvas);
-            schedablocks = new Schedablocks(canvas);
-        }else{
-            let recreate = new Promise((resolve,reject) =>{
-                let promise = schedablocks.default.clear()
-                if (document.querySelector("canvas.webgl")) resolve();
-            });
-            recreate.then(_=>{
-                schedablocks.init()
-            })
-        }
+
+        let recreate = schedablocks.default.clear()
+        recreate.then(_=>{
+            schedablocks.init()
+        })
         
         
     })
