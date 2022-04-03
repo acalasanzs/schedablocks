@@ -33,15 +33,6 @@ reference.addEventListener("click",(e)=>{
 });
 });
 
-function createMaterialArray(skyboxImagepaths) {
-    const materialArray = skyboxImagepaths.map(image => {
-      let texture = new THREE.TextureLoader().load(image);
-    
-      return new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide});
-    });
-    return materialArray;
-}
-
 const deg2rad = function (degrees)
 {
   var pi = Math.PI;
@@ -99,6 +90,34 @@ class Schedablocks {
                 displacementScale: .15,
                 metalnessMap: this.textures.abstract.metallic
             })
+        }
+
+        this.shaders = {
+            fireParticleShader1: {
+                vertex : `
+                uniform float pointMultiplier;
+                attribute float size;
+                attribute float angle;
+                attribute vec4 colour;
+                varying vec4 vColour;
+                varying vec2 vAngle;
+                void main() {
+                  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                  gl_Position = projectionMatrix * mvPosition;
+                  gl_PointSize = size * pointMultiplier / gl_Position.w;
+                  vAngle = vec2(cos(angle), sin(angle));
+                  vColour = colour;
+                }`,
+                
+                fragment : `
+                uniform sampler2D diffuseTexture;
+                varying vec4 vColour;
+                varying vec2 vAngle;
+                void main() {
+                  vec2 coords = (gl_PointCoord - 0.5) * mat2(vAngle.x, vAngle.y, -vAngle.y, vAngle.x) + 0.5;
+                  gl_FragColor = texture2D(diffuseTexture, coords) * vColour;
+                }`
+            }
         }
         
         this.Scene0 = class {
@@ -335,33 +354,6 @@ class Schedablocks {
     start(scene) {
         this.default = new this.scenes[scene](this);
         this.default.animate();
-    }
-    fireParticleShader1 () {
-        return {
-            vertex : `
-            uniform float pointMultiplier;
-            attribute float size;
-            attribute float angle;
-            attribute vec4 colour;
-            varying vec4 vColour;
-            varying vec2 vAngle;
-            void main() {
-              vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-              gl_Position = projectionMatrix * mvPosition;
-              gl_PointSize = size * pointMultiplier / gl_Position.w;
-              vAngle = vec2(cos(angle), sin(angle));
-              vColour = colour;
-            }`,
-            
-            fragment : `
-            uniform sampler2D diffuseTexture;
-            varying vec4 vColour;
-            varying vec2 vAngle;
-            void main() {
-              vec2 coords = (gl_PointCoord - 0.5) * mat2(vAngle.x, vAngle.y, -vAngle.y, vAngle.x) + 0.5;
-              gl_FragColor = texture2D(diffuseTexture, coords) * vColour;
-            }`
-        }
     }
 }
 //Initialize first scene
