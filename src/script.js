@@ -43,14 +43,17 @@ function onTransitionEnd( event ) {
 	
 }
 class Schedablocks {
-    constructor(game, w, h) {
+    constructor(game, container) {
+
+        //Container
+        this.container = container;
 
         // Posar el canvas webgl
         this.canvas = game;
         //Posar les mides en un objecte
         this.sizes = {
-            width: w ? w : this.canvas.parentNode.clientWidth,
-            height: h ? h : this.canvas.parentNode.clientHeight
+            width: container.self == window ? window.innerWidth: container.clientWidth,
+            height: container.self == window ? window.innerHeight: container.clientHeight
         }
         //Prevenir la carrega
         this.loader();
@@ -125,6 +128,7 @@ class Schedablocks {
             0: class {
             constructor(main){
                 this.name = "Scene0";
+                this.container = main.container;
                 this.sizes = main.sizes;
                 this.main = main;
                 this.canvas = main.canvas;
@@ -235,9 +239,11 @@ class Schedablocks {
                 this.controls.maxDistance = 8;
                 this.controls.target.set( 0, 0, - 0.2 );
 
-                window.addEventListener("resize",_=>{
-                    this.sizes.width = this.canvas.parentNode.clientWidth
-                    this.sizes.height = this.canvas.parentNode.clientHeight
+                var resize = _=> {
+                    this.sizes = {
+                        width: this.container.self == window ? window.innerWidth: this.container.clientWidth,
+                        height: this.container.self == window ? window.innerHeight: this.container.clientHeight
+                    }
     
                     // Update camera
                     this.camera.aspect = this.sizes.width / this.sizes.height
@@ -247,6 +253,11 @@ class Schedablocks {
                     this.renderer.setSize(this.sizes.width, this.sizes.height)
                     this.composer.setSize( this.sizes.width, this.sizes.height );
                     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+                }
+                var resizeit;
+                window.addEventListener("resize",_=>{
+                    clearTimeout(resizeit);
+                    resizeit = setTimeout(resize,150);
                 });
 
                 let whoami = this;
@@ -351,7 +362,8 @@ class Schedablocks {
         },
             1: class {
             constructor(main){
-                this.name = "Scene0";
+                this.name = "Music";
+                this.container = main.container;
                 this.sizes = main.sizes;
                 this.main = main;
                 this.canvas = main.canvas;
@@ -462,9 +474,11 @@ class Schedablocks {
                 this.controls.maxDistance = 8;
                 this.controls.target.set( 0, 0, - 0.2 );
 
-                window.addEventListener("resize",_=>{
-                    this.sizes.width = this.canvas.parentNode.clientWidth
-                    this.sizes.height = this.canvas.parentNode.clientHeight
+                var resize = _=> {
+                    this.sizes = {
+                        width: this.container.self == window ? window.innerWidth: this.container.clientWidth,
+                        height: this.container.self == window ? window.innerHeight: this.container.clientHeight
+                    }
     
                     // Update camera
                     this.camera.aspect = this.sizes.width / this.sizes.height
@@ -474,6 +488,11 @@ class Schedablocks {
                     this.renderer.setSize(this.sizes.width, this.sizes.height)
                     this.composer.setSize( this.sizes.width, this.sizes.height );
                     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+                }
+                var resizeit;
+                window.addEventListener("resize",_=>{
+                    clearTimeout(resizeit);
+                    resizeit = setTimeout(resize,150);
                 });
 
                 let whoami = this;
@@ -573,6 +592,7 @@ class Schedablocks {
                 delete this.main.default;
                 const _ = await recreate;
                 this.main.canvas = document.querySelector("canvas");
+                this.main.loaded = false;
             }
         },
         }
@@ -603,8 +623,8 @@ class Schedablocks {
 //Initialize first scene
 var schedablocks;
 const audio = new Audio();
-document.addEventListener("DOMContentLoaded", _=>{
-    schedablocks = new Schedablocks(document.querySelector("canvas.webgl"), window.innerWidth-16,window.innerHeight);
+window.addEventListener("load", _=>{
+    schedablocks = new Schedablocks(document.querySelector("canvas.webgl"), document.getElementById("game"));
     console.log("This is my super object:");
     console.log(schedablocks);
     children[0].addEventListener("click",_=>{
