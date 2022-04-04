@@ -114,7 +114,7 @@ class Schedablocks {
         this.scenes = { 
             0: class {
             constructor(main){
-                this.name = "Scene0";
+                this.name = "initScene";
                 this.container = main.container;
                 this.sizes = main.sizes;
                 this.main = main;
@@ -395,7 +395,7 @@ var schedablocks;
 const audio = new Audio();
 window.addEventListener("load", _=>{
     schedablocks = new Schedablocks(document.querySelector("canvas.webgl"), document.getElementById("game"));
-    schedablocks.id = "lolaso";
+    schedablocks.id = "Schedablocks";
     console.log("This is my super object:");
     console.log(schedablocks);
     children[0].addEventListener("click",_=>{

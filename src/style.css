@@ -306,6 +306,7 @@ html{
 #game{
   text-align: center;
   font-size: 6em;
+  overflow: hidden;
 }
 .blend{
   color: aliceblue;
