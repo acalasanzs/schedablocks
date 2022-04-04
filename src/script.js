@@ -48,6 +48,9 @@ class Schedablocks {
         //Container
         this.container = container;
 
+        //Stats
+        this.stats = new Stats()
+
         // Posar el canvas webgl
         this.canvas = game;
         //Posar les mides en un objecte
@@ -117,6 +120,7 @@ class Schedablocks {
                 this.name = "initScene";
                 this.container = main.container;
                 this.sizes = main.sizes;
+                this.stats = main.stats;
                 this.main = main;
                 this.canvas = main.canvas;
                 this.textureLoader = main.textureLoader;
@@ -148,6 +152,9 @@ class Schedablocks {
                 this.init();
             }
             init() {
+                this.stats.showPanel(0);
+                this.stats.dom.id = "stats";
+                this.canvas.parentNode.appendChild(this.stats.dom)
                 this._previousRAF = null;
                 let lut = new LUTCubeLoader().load( 'Bourbon 64.CUBE', (result, lutMap) => {
                     this.lutMap = result;
@@ -301,9 +308,17 @@ class Schedablocks {
 
                 this.delta = undefined;
                 this.clock2 = new THREE.Clock();
-
+                this.FPSManager = new THREE.Clock();
+                this.FPSDelta = 0;
+                this.FPSInterval = 1/this.FPS;
                 
                 
+            }
+            get FPS () {
+                return this.__FPS__ ? this.__FPS__ : 60;
+            }
+            set FPS (value) {
+                this.__FPS__ = value;
             }
             animate() {
                 window.requestAnimationFrame((t) => {
@@ -320,13 +335,19 @@ class Schedablocks {
                         this.mixer.update( this.delta );
                 
                     }
+                    this.stats.begin();
                     //RAF
                     this.animate();
 
                     // Update objects
                     this._Step(t - this._previousRAF);
                     // Render
-                    this.composer.render()
+                    this.FPSDelta += this.FPSManager.getDelta();
+
+                    if (this.FPSDelta > this.FPSInterval) {
+                        this.composer.render()
+                        this.stats.end();
+                    }
                 })
             }
             _Step(timeElpased) {
