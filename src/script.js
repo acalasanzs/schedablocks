@@ -335,7 +335,6 @@ class Schedablocks {
                 //this.__particles.Step(timeElpasedS);
             }
             async clear () {
-                var id;
                 let parent = this.main.canvas.parentNode;
                 this.main.canvas.remove();
                 let recreate = new Promise ((resolve, reject) => {
