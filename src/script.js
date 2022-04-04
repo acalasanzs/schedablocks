@@ -1,3 +1,10 @@
+/* 
+    TODO:
+        - Stats
+        - FPSInterval
+*/
+
+
 import './style.css'
 import * as THREE from 'three'
 import gsap from "gsap";
@@ -152,9 +159,12 @@ class Schedablocks {
                 this.init();
             }
             init() {
-                this.stats.showPanel(0);
-                this.stats.dom.id = "stats";
-                this.canvas.parentNode.appendChild(this.stats.dom)
+                if (!document.getElementById("stats-"+this.name)) {
+                    this.stats.showPanel(0);
+                    this.stats.dom.id = "stats-"+this.name;
+                    this.stats.dom.className ="stats";
+                    this.canvas.parentNode.appendChild(this.stats.dom);
+                }
                 this._previousRAF = null;
                 let lut = new LUTCubeLoader().load( 'Bourbon 64.CUBE', (result, lutMap) => {
                     this.lutMap = result;
@@ -422,6 +432,7 @@ var schedablocks;
 const audio = new Audio();
 window.addEventListener("load", _=>{
     schedablocks = new Schedablocks(document.querySelector("canvas.webgl"), document.getElementById("game"));
+    schedablocks.FPS = 30;
     schedablocks.id = "Schedablocks";
     console.log("This is my super object:");
     console.log(schedablocks);

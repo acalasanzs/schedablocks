@@ -13,7 +13,6 @@ html {
 
 html {
 	line-height: 1.15; /* 1 */
-	-webkit-text-size-adjust: 100%; /* 2 */
 }
 
 body {
@@ -300,7 +299,7 @@ html{
     fill: white;
     transition: .45s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
-#stats{
+.stats{
   left: calc(100% - 80px)!important;
 }
 #game{
