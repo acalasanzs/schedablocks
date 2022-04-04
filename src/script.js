@@ -133,6 +133,10 @@ class Schedablocks {
                 this.textureLoader = main.textureLoader;
                 this.LoadingManager = main.LoadingManager;
 
+                //FPS
+                this.FPSInterval = 1000/this.FPS;
+                this.FPSDelta = 0;
+
                 this.mesh = [];
                 //Efectes especials
                 let efectes = ["lutPass", "lutMap", "afterimagePass"];
@@ -318,10 +322,7 @@ class Schedablocks {
 
                 this.delta = undefined;
                 this.clock2 = new THREE.Clock();
-                this.FPSManager = new THREE.Clock();
-                this.FPSDelta = 0;
-                this.FPSInterval = 1/this.FPS;
-                
+                this.FPSNow, this.FPSDelta, this.FPSThen = Date.now();
                 
             }
             get FPS () {
@@ -346,18 +347,23 @@ class Schedablocks {
                 
                     }
                     this.stats.begin();
+                    this.FPSNow = Date.now();
+                    this.FPSDelta = this.FPSNow - this.FPSThen;
                     //RAF
                     this.animate();
-
-                    // Update objects
-                    this._Step(t - this._previousRAF);
-                    // Render
-                    this.FPSDelta += this.FPSManager.getDelta();
-
                     if (this.FPSDelta > this.FPSInterval) {
-                        this.composer.render()
-                        this.stats.end();
+                        // Update objects
+                        this._Step(t - this._previousRAF);
+                        
+
+                        this.FPSThen = this.FPSNow - (this.FPSDelta % this.FPSInterval);
                     }
+                    
+                    //Render
+                    this.composer.render();
+                    this.stats.end();
+                    
+                    
                 })
             }
             _Step(timeElpased) {
@@ -367,9 +373,10 @@ class Schedablocks {
             }
             async clear () {
                 let parent = this.main.canvas.parentNode;
+                let canvas;
                 this.main.canvas.remove();
                 let recreate = new Promise ((resolve, reject) => {
-                    let canvas = document.createElement("canvas");
+                    canvas = document.createElement("canvas");
                     parent.appendChild(canvas);
                     canvas.id = this.main.__id__;
                     this.main.canvas = canvas;
@@ -377,7 +384,7 @@ class Schedablocks {
                 });
                 delete this.main.default;
                 const _ = await recreate;
-                this.main.canvas = document.querySelector("canvas");
+                this.main.canvas = canvas;
             }
         },
         }
@@ -432,7 +439,7 @@ var schedablocks;
 const audio = new Audio();
 window.addEventListener("load", _=>{
     schedablocks = new Schedablocks(document.querySelector("canvas.webgl"), document.getElementById("game"));
-    schedablocks.FPS = 30;
+    schedablocks.FPS = 15;
     schedablocks.id = "Schedablocks";
     console.log("This is my super object:");
     console.log(schedablocks);
