@@ -341,10 +341,9 @@ class Schedablocks {
                 let recreate = new Promise ((resolve, reject) => {
                     let canvas = document.createElement("canvas");
                     parent.appendChild(canvas);
-                    id = this.main.id();
-                    canvas.id = id;
+                    canvas.id = this.main.__id__;
                     this.main.canvas = canvas;
-                    if (document.getElementById(id)) resolve();
+                    if (document.getElementById(canvas.id)) resolve();
                 });
                 delete this.main.default;
                 const _ = await recreate;
@@ -364,8 +363,11 @@ class Schedablocks {
         this.default = new this.scenes[scene](this);
         this.default.animate();
     }
-    id() {
-        return this.default.name + Math.random().toString(36).substring(2, 9);
+    get id() {
+        return this.__id__ ? this.__id__ : this.default.name + Math.random().toString(36).substring(2, 9);
+    }
+    set id(userID) {
+        this.__id__ = userID;
     }
     loader() {
         this.loadingScreen = document.createElement("section");
@@ -394,6 +396,7 @@ var schedablocks;
 const audio = new Audio();
 window.addEventListener("load", _=>{
     schedablocks = new Schedablocks(document.querySelector("canvas.webgl"), document.getElementById("game"));
+    schedablocks.id = "lolaso";
     console.log("This is my super object:");
     console.log(schedablocks);
     children[0].addEventListener("click",_=>{

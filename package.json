@@ -6,7 +6,7 @@
     "dev": "webpack serve --config ./bundler/webpack.dev.js"
   },
   "name": "schedablocks",
-  "version": "0.0.1",
+  "version": "0.10.0",
   "dependencies": {
     "@babel/core": "^7.13.1",
     "@babel/preset-env": "^7.13.5",
