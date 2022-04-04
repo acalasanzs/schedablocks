@@ -57,19 +57,6 @@ class Schedablocks {
         }
         //Prevenir la carrega
         this.loader();
-        this.LoadingManager = new THREE.LoadingManager();
-        this.loaded = false;
-        this.LoadingManager.onProgress = ( url, itemsLoaded, itemsTotal ) => {
-            if(itemsLoaded == itemsTotal && !this.loaded) {
-                this.loaded = true;
-                console.log("Loaded");
-                this.loadingScreen.classList.add( 'fade-out' );
-                // optional: remove loader from DOM via event listener
-                this.loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
-                this.loadingScreen = null;
-            }
-        };
-        this.textureLoader = new THREE.TextureLoader(this.LoadingManager);
         // TEXTURES
         this.textures = { 
             abstract : {
@@ -211,7 +198,6 @@ class Schedablocks {
                 this.scene.add(ambient);
 
                 // GLTF
-                var mesh = [];
                 this.GLTFloader = new GLTFLoader(this.LoadingManager);
                 this.GLTFloader.setPath( 'models/DamagedHelmet/glTF/' ).load( 'DamagedHelmet.gltf', gltf => {
                     this.scene.add( gltf.scene );
@@ -360,11 +346,9 @@ class Schedablocks {
                     this.main.canvas = canvas;
                     if (document.getElementById(id)) resolve();
                 });
-                this.main.LoadingManager = new THREE.LoadingManager();
                 delete this.main.default;
                 const _ = await recreate;
                 this.main.canvas = document.querySelector("canvas");
-                this.main.loaded = false;
             }
         },
         }
@@ -390,6 +374,19 @@ class Schedablocks {
         node.id = "loader";
         this.loadingScreen.appendChild(node);
         this.canvas.parentNode.appendChild(this.loadingScreen);
+        this.LoadingManager = new THREE.LoadingManager();
+        this.loaded = false;
+        this.LoadingManager.onProgress = ( url, itemsLoaded, itemsTotal ) => {
+            if(itemsLoaded == itemsTotal && !this.loaded) {
+                this.loaded = true;
+                console.log("Loaded");
+                this.loadingScreen.classList.add( 'fade-out' );
+                // optional: remove loader from DOM via event listener
+                this.loadingScreen.addEventListener( 'transitionend', onTransitionEnd );
+                this.loadingScreen = null;
+            }
+        };
+        this.textureLoader = new THREE.TextureLoader(this.LoadingManager);
     }
 }
 //Initialize first scene
