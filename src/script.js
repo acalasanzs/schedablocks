@@ -315,7 +315,7 @@ class Schedablocks {
                 
             }
             get FPS () {
-                return this.__FPS__ ? this.__FPS__ : 60;
+                return this.__FPS__ ? this.__FPS__ : this.main.FPS;
             }
             set FPS (value) {
                 this.__FPS__ = value;
@@ -388,6 +388,12 @@ class Schedablocks {
     }
     set id(userID) {
         this.__id__ = userID;
+    }
+    get FPS () {
+        return this.__FPS__ ? this.__FPS__ : 60;
+    }
+    set FPS (value) {
+        this.__FPS__ = value;
     }
     loader() {
         this.loadingScreen = document.createElement("section");
