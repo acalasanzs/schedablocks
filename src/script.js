@@ -381,7 +381,7 @@ class Schedablocks {
         this.default.animate();
     }
     id() {
-        return this.default.name + Math.random().toString(36).substr(2, 9);
+        return this.default.name + Math.random().toString(36).substring(2, 9);
     }
     loader() {
         this.loadingScreen = document.createElement("section");
